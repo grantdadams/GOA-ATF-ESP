@@ -1,5 +1,5 @@
 # Code used to fit the 2023 arrowtooth flounder assessment in CEATTLE
-# uses the "dev" version of Rceattle
+# uses the "dev_srr" version of Rceattle
 
 library(Rceattle)
 library(readxl)
@@ -24,13 +24,6 @@ for(i in 1:nrow(mydata_atf$comp_data)){
     mydata_atf$comp_data[i,9:50] <- mydata_atf$comp_data[i,9:50]/sum(mydata_atf$comp_data[i,9:50])
   }
 }
-
-# From ADMB:
-# Obs_srv_agecomp_fem
-# 7.90666e-05 0.00313498 0.0379455 0.0652694 0.108601 0.130278 0.0905713 0.0523955 0.0289754 0.0175692 0.0132002 0.0113169 0.0109475 0.0115989 0.0108947 0.00733653 0.00320759 0.000875116 0.000146982 1.45321e-05 0
-# 0.000760599 0.0298807 0.125971 0.10811 0.0813278 0.0790064 0.0683911 0.0589958 0.0451463 0.0323879 0.0223119 0.0157865 0.0121851 0.00876744 0.00583284 0.00395838 0.00247833 0.00119619 0.000408521 9.80151e-05 1.83925e-05
-# 0.00107533 0.0307406 0.0552633 0.0727462 0.106164 0.100667 0.0758981 0.0623449 0.045969 0.0333777 0.0284382 0.0223733 0.0150648 0.0103278 0.00826743 0.00735492 0.00638912 0.00493648 0.00326254 0.00188223 0.00189843
-# 0.00296019 0.046004 0.0638507 0.0617656 0.0668547 0.0760286 0.0806364 0.0816902 0.0745241 0.0523471 0.0331168 0.0234664 0.0166097 0.0106142 0.0063218 0.00376536 0.0023633 0.00148951 0.00085809 0.00044536 0.000401546
 
 
 # Single-species models ----
@@ -77,7 +70,8 @@ inits$ln_sel_slp[1,2,2] <- log(1.64315096373) # Males
 inits$sel_inf[1,2,1] <- 2.83302919170 # Fem
 inits$sel_inf[1,2,2] <- 3.01664650825 # Males
 
-atf_fixed_numbers <- Rceattle::fit_mod(data_list = mydata_atf_fixed,
+mydata_atf_fixed$estDynamics <- 0
+bridging_model_2a <- Rceattle::fit_mod(data_list = mydata_atf_fixed,
                                        inits = inits, # Initial parameters = 0
                                        file = NULL, # Don't save
                                        estimateMode = 4, # Estimate
@@ -85,44 +79,9 @@ atf_fixed_numbers <- Rceattle::fit_mod(data_list = mydata_atf_fixed,
                                        msmMode = 0, # Single species mode
                                        verbose = 1,
                                        phase = "default",
-                                       initMode = 1)
+                                       initMode = 1,
+                                       TMBfilename = "src/ceattle_v01_11_atf_ll")
 
-mydata_atf_fixed$estDynamics <- 0
-bridging_model_2a <- Rceattle::fit_mod(data_list = mydata_atf_fixed,
-                             inits = inits, # Initial parameters = 0
-                             file = NULL, # Don't save
-                             estimateMode = 4, # Estimate
-                             random_rec = FALSE, # No random recruitment
-                             msmMode = 0, # Single species mode
-                             verbose = 1,
-                             phase = "default",
-                             initMode = 1,
-                             TMBfilename = "src/ceattle_v01_10_atf_ll")
-
-# Check likelihoods
-bridging_model_2a$quantities$jnll_comp
-
-check <- bridging_model_2a$data_list$comp_data
-check[,9:ncol(check)] <- bridging_model_2a$quantities$true_age_comp_hat
-sum(check$Sample_size[1:16] * (bridging_model_2a$data_list$comp_data[1:16,9:50] + 0.000001) * log((check[1:16,9:50] + 0.000001)))
-bridging_model_2a$quantities$jnll_comp[3,]/bridging_model_2a$data_list$fleet_control$Comp_weights
-
-# From ADMB:
-# Pred_srv_agecomp_fem
-# 0.0130388 0.0338264 0.067657 0.0877003 0.0960432 0.0885791 0.0670319 0.0472871 0.0390952 0.0308334 0.0212311 0.0174427 0.0157855 0.0150555 0.0117996 0.0103732 0.00505266 0.00647735 0.00353869 0.00342746 0.0148114
-# 0.0123368 0.0463766 0.122149 0.10918 0.072712 0.0529302 0.044865 0.0440604 0.0396867 0.0298525 0.0210064 0.0173447 0.0136712 0.00941238 0.00773074 0.00699647 0.00667363 0.00523103 0.00459975 0.00224102 0.0125365
-# 0.00913608 0.0374923 0.0911718 0.106113 0.102383 0.0981026 0.0572967 0.034182 0.0242661 0.0204108 0.0199658 0.0179464 0.0134877 0.00948712 0.00783056 0.00617262 0.00425055 0.00349216 0.00316187 0.00301748 0.0111335
-# 0.00726879 0.0337822 0.0796151 0.0924068 0.097198 0.0857543 0.0649369 0.0557884 0.0517306 0.0297498 0.0175838 0.0124335 0.010433 0.0101932 0.00915924 0.0068861 0.00484779 0.0040059 0.00316285 0.00218177 0.0106922
-#
-#
-# bridging_model_2a$quantities$sel[,1,,1]
-# bridging_model_2a$quantities$sel[,2,,1]
-#
-# head(bridging_model_2a$data_list$NByageFixed[,5:25])
-# head(t(bridging_model_2a$quantities$NByage[1,1,1:21,1:47]))
-#
-#
-# t(bridging_model_2a$quantities$NByage[1,1,1:21,1:47])/1000 - bridging_model_2a$data_list$NByageFixed[1:47,5:25]
 
 
 # * Model 2b ----
@@ -142,7 +101,7 @@ bridging_model_2b <- Rceattle::fit_mod(data_list = mydata_atf,
                                                        FsprLimit = 0.35, # F35%
                                                        Plimit = 0,
                                                        Alpha = 0.05),
-                                       TMBfilename = "src/ceattle_v01_10_atf_ll")
+                                       TMBfilename = "src/ceattle_v01_11_atf_ll")
 
 
 # * Model 3 ----
@@ -163,59 +122,167 @@ bridging_model_3 <- Rceattle::fit_mod(data_list = mydata_atf,
                                                       Plimit = 0,
                                                       Alpha = 0.05))
 
+# - No fishing
+bridging_model_3_nof <- Rceattle::fit_mod(data_list = mydata_atf,
+                                          inits = NULL, # Initial parameters = 0
+                                          file = NULL, # Don't save
+                                          estimateMode = 0, # Estimate
+                                          random_rec = FALSE, # No random recruitment
+                                          msmMode = 0, # Single species mode
+                                          verbose = 1,
+                                          phase = "default",
+                                          initMode = 1)
+
+
+# * Model 4 ----
+# - Fit single-species models with tier-3 HCR using CEATTLE likelihoods, but estimate Ms
+bridging_model_4 <- Rceattle::fit_mod(data_list = mydata_atf,
+                                      inits = NULL, # Initial parameters = 0
+                                      file = NULL, # Don't save
+                                      estimateMode = 0, # Estimate
+                                      random_rec = FALSE, # No random recruitment
+                                      msmMode = 0, # Single species mode
+                                      verbose = 1,
+                                      phase = "default",
+                                      initMode = 1,
+                                      HCR = build_hcr(HCR = 5, # Tier3 HCR
+                                                      DynamicHCR = FALSE, # equilibrium reference points
+                                                      FsprTarget = 0.4, # F40%
+                                                      FsprLimit = 0.35, # F35%
+                                                      Plimit = 0,
+                                                      Alpha = 0.05),
+                                      M1Fun = build_M1(M1_model = 2) # Estimate M
+)
+
 
 
 # Multi-species model ----
 # (cannibalism)
 ms_model <- Rceattle::fit_mod(data_list = mydata_atf,
-                                      inits = NULL, # Initial parameters = 0
-                                      file = NULL, # Don't save
-                                      estimateMode = 0, # Estimate
-                                      random_rec = FALSE, # No random recruitment
-                                      verbose = 1,
-                                      phase = "default",
-                                      initMode = 1,
-                                      msmMode = 1, # Multi-species model
-                                      M1Fun = build_M1(M1_model = 1) # Estimate residual M
-                              )
+                              inits = NULL, # Initial parameters = 0
+                              file = NULL, # Don't save
+                              estimateMode = 0, # Estimate
+                              random_rec = FALSE, # No random recruitment
+                              verbose = 1,
+                              phase = "default",
+                              suit_meanyr = 2018,
+                              initMode = 1,
+                              msmMode = 1, # Multi-species model
+                              M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
+)
 
 
-# * Input catch from single-species Tier-3
-mydata_atf_ms <- mydata_atf
-mydata_atf_ms$endyr <- 2050
-
-proj_catch <- data.frame(Fleet_name = "ATF_total",
-                         Fleet_code = 3, Species = 1,
-                         Year = 2024:2050,
-                         Month = 0, Selectivity_block = 1,
-                         Catch = bridging_model_3$quantities$fsh_bio_hat[48:74],
-                         Log_sd = 0.05)
-
-mydata_atf_ms$fsh_biom <- rbind(
-  mydata_atf_ms$fsh_biom,
-  proj_catch)
+# * Input catch from single-species Tier-3 and project
+# ** Model specifications ----
+hind_yrs <- mydata_atf$styr: mydata_atf$endyr
+hind_nyrs <- length(hind_yrs)
+proj_yrs <- (mydata_atf$endyr + 1) : mydata_atf$projyr
+proj_nyrs <- length(proj_yrs)
+nflts = nrow(ms_model$data_list$fleet_control)
+new_years <- proj_yrs
 
 
-bridging_model_3 <- Rceattle::fit_mod(data_list = mydata_atf_ms,
-                                      inits = NULL, # Initial parameters = 0
-                                      file = NULL, # Don't save
-                                      estimateMode = 0, # Estimate
-                                      random_rec = FALSE, # No random recruitment
-                                      verbose = 1,
-                                      phase = "default",
-                                      initMode = 1,
-                                      msmMode = 1, # Multi-species model
-                                      M1Fun = build_M1(M1_model = 1) # Estimate residual M
-                                      )
+# ** Update rec devs (mean recruitment, not R0)
+ms_model_proj <- ms_model
+ms_model_proj$data_list$endyr <- 2050
+rec_dev <- log(mean(ms_model_proj$quantities$R[1,1:hind_nyrs]))  - log(ms_model_proj$quantities$R0[1]) #
+ms_model_proj$estimated_params$rec_dev[1,proj_yrs - ms_model_proj$data_list$styr + 1] <- replace(
+  ms_model_proj$estimated_params$rec_dev[1,proj_yrs - ms_model_proj$data_list$styr + 1],
+  values =  rec_dev)
 
 
-################################################
-# Compare models
-################################################
+# -- wt
+proj_wt <- ms_model_proj$data_list$wt %>%
+  group_by(Wt_index , Sex) %>%
+  slice(rep(n(),  proj_nyrs)) %>%
+  mutate(Year = proj_yrs)
+ms_model_proj$data_list$wt  <- rbind(ms_model_proj$data_list$wt, proj_wt)
+ms_model_proj$data_list$wt <- dplyr::arrange(ms_model_proj$data_list$wt, Wt_index, Year)
+
+# -- Pyrs
+proj_Pyrs <- ms_model_proj$data_list$Pyrs %>%
+  group_by(Species, Sex) %>%
+  slice(rep(n(),  proj_nyrs)) %>%
+  mutate(Year = proj_yrs)
+ms_model_proj$data_list$Pyrs  <- rbind(ms_model_proj$data_list$Pyrs, proj_Pyrs)
+ms_model_proj$data_list$Pyrs <- dplyr::arrange(ms_model_proj$data_list$Pyrs, Species, Year)
+
+
+# ** GET RECOMMENDED TAC FROM Single-species model ----
+# - Get projected catch data from single-species model
+new_catch_data <- bridging_model_3$data_list$fsh_biom
+dat_fill_ind <- which(new_catch_data$Year %in% new_years & is.na(new_catch_data$Catch))
+new_catch_data$Catch[dat_fill_ind] <- bridging_model_3$quantities$fsh_bio_hat[dat_fill_ind]
+ms_model_proj$data_list$fsh_biom <- new_catch_data
+
+
+# ** Update parameters ----
+# -- F_dev
+ms_model_proj$estimated_params$F_dev <- cbind(ms_model_proj$estimated_params$F_dev, matrix(0, nrow= nrow(ms_model_proj$estimated_params$F_dev), ncol = length(new_years)))
+
+# -- Time-varing survey catachbilitiy - Assume last year - filled by columns
+ms_model_proj$estimated_params$ln_srv_q_dev <- cbind(ms_model_proj$estimated_params$ln_srv_q_dev, matrix(ms_model_proj$estimated_params$ln_srv_q_dev[,ncol(ms_model_proj$estimated_params$ln_srv_q_dev)], nrow= nrow(ms_model_proj$estimated_params$ln_srv_q_dev), ncol = length(new_years)))
+
+# -- Time-varing selectivity - Assume last year - filled by columns
+ln_sel_slp_dev = array(0, dim = c(2, nflts, 2, hind_nyrs + length(new_years)))  # selectivity deviations paramaters for logistic
+sel_inf_dev = array(0, dim = c(2, nflts, 2, hind_nyrs + length(new_years)))  # selectivity deviations paramaters for logistic
+# sel_coff_dev = array(0, dim = c(nflts, 2, nselages_om, hind_nyrs + length(new_years)))  # selectivity deviations paramaters for non-parameteric
+
+ln_sel_slp_dev[,,,1:hind_nyrs] <- ms_model_proj$estimated_params$ln_sel_slp_dev
+sel_inf_dev[,,,1:hind_nyrs] <- ms_model_proj$estimated_params$sel_inf_dev
+# sel_coff_dev[,,,1:hind_nyrs] <- ms_model_proj$estimated_params$# sel_coff_dev
+
+ln_sel_slp_dev[,,,(hind_nyrs + 1):(hind_nyrs + length(new_years))] <- ln_sel_slp_dev[,,,hind_nyrs]
+sel_inf_dev[,,,(hind_nyrs + 1):(hind_nyrs + length(new_years))] <- sel_inf_dev[,,,hind_nyrs]
+# sel_coff_dev[,,,(hind_nyrs + 1):(hind_nyrs + length(new_years))] <- # sel_coff_dev[,,,hind_nyrs]
+
+ms_model_proj$estimated_params$ln_sel_slp_dev <- ln_sel_slp_dev
+ms_model_proj$estimated_params$sel_inf_dev <- sel_inf_dev
+# ms_model_proj$estimated_params$# sel_coff_dev <- # sel_coff_dev
+
+
+# ** Update map ----
+# - (Only new parameter we are estimating is the F_dev of the new years)
+ms_model_proj$map <- build_map(
+  data_list = ms_model_proj$data_list,
+  params = ms_model_proj$estimated_params,
+  debug = TRUE,
+  random_rec = ms_model_proj$data_list$random_rec)
+ms_model_proj$map$mapFactor$dummy <- as.factor(NA); ms_model_proj$map$mapList$dummy <- NA
+
+
+# -- Estimate terminal F for catch
+new_f_yrs <- (ncol(ms_model_proj$map$mapList$F_dev) - length(new_years) + 1) : ncol(ms_model_proj$map$mapList$F_dev) # - Years of new F
+f_fleets <- ms_model_proj$data_list$fleet_control$Fleet_code[which(ms_model_proj$data_list$fleet_control$Fleet_type == 1)] # Fleet rows for F
+ms_model_proj$map$mapList$F_dev[f_fleets,new_f_yrs] <- replace(ms_model_proj$map$mapList$F_dev[f_fleets,new_f_yrs], values = 1:length(ms_model_proj$map$mapList$F_dev[f_fleets,new_f_yrs]))
+ms_model_proj$map$mapFactor$F_dev <- factor(ms_model_proj$map$mapList$F_dev)
+
+# ** Estimate F ----
+ms_model_proj <- Rceattle::fit_mod(data_list = ms_model_proj$data_list,
+                                   inits = ms_model_proj$estimated_params,
+                                   map = ms_model_proj$map,
+                                   bounds = NULL,
+                                   file = NULL, # Don't save
+                                   estimateMode = 1, # Estimate
+                                   random_rec = FALSE, # No random recruitment
+                                   verbose = 1,
+                                   phase = NULL,
+                                   suit_meanyr = 2018,
+                                   initMode = 1,
+                                   msmMode = 1, # Multi-species model
+                                   getsd = FALSE,
+                                   M1Fun = build_M1(M1_model = 2) # Estimate residual M
+)
+
+plot_ssb(ms_model_proj, incl_proj = T)
+
+
+
+# Compare models ----
 # - SAFE model
 SAFE2023 <- read_excel("Data/2023_SAFE_biomass_estimate.xlsx", sheet = 1)
 
-SAFE2023_mod <- atf_base
+SAFE2023_mod <- bridging_model_3
 SAFE2023_mod$quantities$biomass[1,1:length(1977:2023)] <- SAFE2023$Biomass
 SAFE2023_mod$quantities$biomassSSB[1,1:length(1977:2023)] <- SAFE2023$SSB
 SAFE2023_mod$quantities$R[1,1:length(1977:2023)] <- SAFE2023$Recruitment/1000
@@ -223,8 +290,7 @@ SAFE2023_mod$quantities$R[1,1:length(1977:2023)] <- SAFE2023$Recruitment/1000
 
 # - SAFE model with fixed multinomial and selectivity penalties set to the same for sexes (lines 470-472 of dat file)
 SAFE2023multisel <- read_excel("Data/2023_SAFE_biomass_estimate.xlsx", sheet = 3)
-
-SAFE2023multisel_mod <- atf_base
+SAFE2023multisel_mod <- bridging_model_3
 SAFE2023multisel_mod$quantities$biomass[1,1:length(1977:2023)] <- SAFE2023multisel$Biomass
 SAFE2023multisel_mod$quantities$biomassSSB[1,1:length(1977:2023)] <- SAFE2023multisel$SSB
 SAFE2023multisel_mod$quantities$R[1,1:length(1977:2023)] <- SAFE2023multisel$Recruitment/1000
@@ -237,16 +303,34 @@ bridging_model_2a$quantities$R <- bridging_model_2a$quantities$R/1000
 # bridging_model_2a$quantities$fsh_bio_hat <- bridging_model_2a$quantities$fsh_bio_hat/1000
 # bridging_model_2a$quantities$srv_bio_hat <- bridging_model_2a$quantities$srv_bio_hat/1000
 
-#
-model_list <- list(atf_base, SAFE2023_mod, SAFE2023multi_mod, SAFE2023multisel_mod, bridging_model_2a)
-model_names = c("CEATTLE", "SAFE", "SAFE-multi", "SAFE-multi-sel", "Fixed")
+
+# Plot bridging ----
+model_list <- list(SAFE2023_mod, SAFE2023multisel_mod, bridging_model_2a, bridging_model_2b, bridging_model_3)
+model_names = c("Base", "Model 1", "Model 2a", "Model 2b", "Model 3")
+
+plot_biomass(model_list, model_names = model_names, file = "Results/Figures/Bridging_", width = 6, height = 3)
+plot_ssb(model_list, model_names = model_names, file = "Results/Figures/Bridging_", width = 6, height = 3)
+plot_recruitment(model_list, model_names = model_names, file = "Results/Figures/Bridging_", width = 6, height = 3)
 
 
-plot_biomass(list(atf_fixed_numbers, bridging_model_2a, SAFE2023multisel_mod))
+# JNLL ----
+jnll_list <- lapply(list(bridging_model_2a, bridging_model_2b, bridging_model_3, ms_model), function(x) (x$quantities$jnll_comp))
+for(i in 1:length(jnll_list)){
+  jnll_list[[i]][3,] <- jnll_list[[i]][3,]/bridging_model_2a$data_list$fleet_control$Comp_weights
+}
+write.csv(do.call("rbind", jnll_list),
+          file = "Results/jnll_components.csv")
 
-plot_biomass(model_list, model_names = model_names)
-plot_ssb(model_list, model_names = model_names)
-plot_recruitment(model_list, model_names = model_names)
-plot_catch(list(SAFE2023multisel_mod, bridging_model_2a, atf_base), model_names = c("SAFE", "CEATTLE", "FIXED"))
-plot_index(list(bridging_model_2a, atf_base), model_names = c("CEATTLE", "FIXED"))
+
+# Plot final ----
+MPcols <- rev(oce::oce.colorsViridis(3))
+line_col <- c(MPcols[2], MPcols[3], "grey60",1, MPcols[2], MPcols[3])
+model_list <- list(bridging_model_3,  ms_model_proj, bridging_model_3_nof, ms_model, bridging_model_3,  ms_model_proj)
+model_names = c("Single-spp", "Multi-spp")
+
+plot_biomass(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, incl_proj = T, line_col = line_col)
+plot_catch(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, incl_proj = T, line_col = line_col)
+plot_ssb(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, incl_proj = T, line_col = line_col)
+plot_recruitment(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, incl_proj = T, line_col = line_col)
+plot_b_eaten(list(ms_model, ms_model_proj), file = "Results/Figures/Final_", width = 6, height = 3, line_col = c(1, MPcols[3]), incl_proj = T)
 
