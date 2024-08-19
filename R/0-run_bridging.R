@@ -11,6 +11,7 @@ mydata_atf <- Rceattle::read_data( file = "Data/GOA_23.1.1_arrowtooth_single_spe
 mydata_atf$estDynamics = 0
 mydata_atf$srv_biom$Log_sd <- mydata_atf$srv_biom$Log_sd/mydata_atf$srv_biom$Observation
 mydata_atf$fleet_control$proj_F_prop <- c(1,1,1)
+mydata_atf_ageerror <- mydata_atf # Save data with "correct" ageing error set-up
 
 # * Adjust ageing error ----
 agerr_mat <- as.matrix(mydata_atf$age_error[1:21,3:23])
@@ -135,8 +136,39 @@ bridging_model_3_nof <- Rceattle::fit_mod(data_list = mydata_atf,
 
 
 # * Model 4 ----
+# - Fit single-species models with tier-3 HCR using CEATTLE likelihoods
+# - AND correct ageing error
+bridging_model_4 <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
+                                      inits = NULL, # Initial parameters = 0
+                                      file = NULL, # Don't save
+                                      estimateMode = 0, # Estimate
+                                      random_rec = FALSE, # No random recruitment
+                                      msmMode = 0, # Single species mode
+                                      verbose = 1,
+                                      phase = "default",
+                                      initMode = 1,
+                                      HCR = build_hcr(HCR = 5, # Tier3 HCR
+                                                      DynamicHCR = FALSE, # equilibrium reference points
+                                                      FsprTarget = 0.4, # F40%
+                                                      FsprLimit = 0.35, # F35%
+                                                      Plimit = 0,
+                                                      Alpha = 0.05))
+
+# -- No fishing
+bridging_model_4_nof <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
+                                          inits = NULL, # Initial parameters = 0
+                                          file = NULL, # Don't save
+                                          estimateMode = 0, # Estimate
+                                          random_rec = FALSE, # No random recruitment
+                                          msmMode = 0, # Single species mode
+                                          verbose = 1,
+                                          phase = "default",
+                                          initMode = 1)
+
+
+# * Model 5 ----
 # - Fit single-species models with tier-3 HCR using CEATTLE likelihoods, but estimate Ms
-bridging_model_4 <- Rceattle::fit_mod(data_list = mydata_atf,
+bridging_model_5 <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
                                       inits = NULL, # Initial parameters = 0
                                       file = NULL, # Don't save
                                       estimateMode = 0, # Estimate
@@ -158,13 +190,13 @@ bridging_model_4 <- Rceattle::fit_mod(data_list = mydata_atf,
 
 # Multi-species model ----
 # (cannibalism)
-ms_model <- Rceattle::fit_mod(data_list = mydata_atf,
-                              inits = NULL, # Initial parameters = 0
+ms_model <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
+                              inits = bridging_model_5$estimated_params, # Initial parameters = 0
                               file = NULL, # Don't save
                               estimateMode = 0, # Estimate
                               random_rec = FALSE, # No random recruitment
                               verbose = 1,
-                              phase = "default",
+                              phase = NULL,
                               suit_meanyr = 2018,
                               initMode = 1,
                               msmMode = 1, # Multi-species model
@@ -172,7 +204,7 @@ ms_model <- Rceattle::fit_mod(data_list = mydata_atf,
 )
 
 
-# * Input catch from single-species Tier-3 and project
+# * Input catch from single-species Tier-3 and project ----
 # ** Model specifications ----
 hind_yrs <- mydata_atf$styr: mydata_atf$endyr
 hind_nyrs <- length(hind_yrs)
@@ -305,8 +337,8 @@ bridging_model_2a$quantities$R <- bridging_model_2a$quantities$R/1000
 
 
 # Plot bridging ----
-model_list <- list(SAFE2023_mod, SAFE2023multisel_mod, bridging_model_2a, bridging_model_2b, bridging_model_3)
-model_names = c("Base", "Model 1", "Model 2a", "Model 2b", "Model 3")
+model_list <- list(SAFE2023_mod, SAFE2023multisel_mod, bridging_model_2a, bridging_model_2b, bridging_model_3, bridging_model_4)
+model_names = c("Base", "Model 1", "Model 2a", "Model 2b", "Model 3", "Model 4")
 
 plot_biomass(model_list, model_names = model_names, file = "Results/Figures/Bridging_", width = 6, height = 3)
 plot_ssb(model_list, model_names = model_names, file = "Results/Figures/Bridging_", width = 6, height = 3)
@@ -314,23 +346,11 @@ plot_recruitment(model_list, model_names = model_names, file = "Results/Figures/
 
 
 # JNLL ----
-jnll_list <- lapply(list(bridging_model_2a, bridging_model_2b, bridging_model_3, ms_model), function(x) (x$quantities$jnll_comp))
+jnll_list <- lapply(list(bridging_model_2a, bridging_model_2b, bridging_model_3, bridging_model_4, ms_model), function(x) (x$quantities$jnll_comp))
 for(i in 1:length(jnll_list)){
   jnll_list[[i]][3,] <- jnll_list[[i]][3,]/bridging_model_2a$data_list$fleet_control$Comp_weights
 }
 write.csv(do.call("rbind", jnll_list),
           file = "Results/jnll_components.csv")
 
-
-# Plot final ----
-MPcols <- rev(oce::oce.colorsViridis(3))
-line_col <- c(MPcols[2], MPcols[3], "grey60",1, MPcols[2], MPcols[3])
-model_list <- list(bridging_model_3,  ms_model_proj, bridging_model_3_nof, ms_model, bridging_model_3,  ms_model_proj)
-model_names = c("Single-spp", "Multi-spp")
-
-plot_biomass(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, incl_proj = T, line_col = line_col)
-plot_catch(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, incl_proj = T, line_col = line_col)
-plot_ssb(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, incl_proj = T, line_col = line_col)
-plot_recruitment(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, incl_proj = T, line_col = line_col)
-plot_b_eaten(list(ms_model, ms_model_proj), file = "Results/Figures/Final_", width = 6, height = 3, line_col = c(1, MPcols[3]), incl_proj = T)
 
