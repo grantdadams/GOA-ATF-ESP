@@ -96,12 +96,12 @@ bridging_model_2b <- Rceattle::fit_mod(data_list = mydata_atf,
                                        verbose = 1,
                                        phase = "default",
                                        initMode = 1,
-                                       HCR = build_hcr(HCR = 5, # Tier3 HCR
-                                                       DynamicHCR = FALSE, # equilibrium reference points
-                                                       FsprTarget = 0.4, # F40%
-                                                       FsprLimit = 0.35, # F35%
-                                                       Plimit = 0,
-                                                       Alpha = 0.05),
+                                       # HCR = build_hcr(HCR = 5, # Tier3 HCR
+                                       #                 DynamicHCR = FALSE, # equilibrium reference points
+                                       #                 FsprTarget = 0.4, # F40%
+                                       #                 FsprLimit = 0.35, # F35%
+                                       #                 Plimit = 0,
+                                       #                 Alpha = 0.05),
                                        TMBfilename = "src/ceattle_v01_11_atf_ll")
 
 
@@ -116,12 +116,13 @@ bridging_model_3 <- Rceattle::fit_mod(data_list = mydata_atf,
                                       verbose = 1,
                                       phase = "default",
                                       initMode = 1,
-                                      HCR = build_hcr(HCR = 5, # Tier3 HCR
-                                                      DynamicHCR = FALSE, # equilibrium reference points
-                                                      FsprTarget = 0.4, # F40%
-                                                      FsprLimit = 0.35, # F35%
-                                                      Plimit = 0,
-                                                      Alpha = 0.05))
+                                      # HCR = build_hcr(HCR = 5, # Tier3 HCR
+                                      #                 DynamicHCR = FALSE, # equilibrium reference points
+                                      #                 FsprTarget = 0.4, # F40%
+                                      #                 FsprLimit = 0.35, # F35%
+                                      #                 Plimit = 0,
+                                      #                 Alpha = 0.05)
+                                      )
 
 # - No fishing
 bridging_model_3_nof <- Rceattle::fit_mod(data_list = mydata_atf,
@@ -147,12 +148,13 @@ bridging_model_4 <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
                                       verbose = 1,
                                       phase = "default",
                                       initMode = 1,
-                                      HCR = build_hcr(HCR = 5, # Tier3 HCR
-                                                      DynamicHCR = FALSE, # equilibrium reference points
-                                                      FsprTarget = 0.4, # F40%
-                                                      FsprLimit = 0.35, # F35%
-                                                      Plimit = 0,
-                                                      Alpha = 0.05))
+                                      # HCR = build_hcr(HCR = 5, # Tier3 HCR
+                                      #                 DynamicHCR = FALSE, # equilibrium reference points
+                                      #                 FsprTarget = 0.4, # F40%
+                                      #                 FsprLimit = 0.35, # F35%
+                                      #                 Plimit = 0,
+                                      #                 Alpha = 0.05)
+                                      )
 
 # -- No fishing
 bridging_model_4_nof <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
@@ -189,12 +191,12 @@ bridging_model_6 <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
                                       verbose = 1,
                                       phase = "default",
                                       initMode = 1,
-                                      HCR = build_hcr(HCR = 5, # Tier3 HCR
-                                                      DynamicHCR = FALSE, # equilibrium reference points
-                                                      FsprTarget = 0.4, # F40%
-                                                      FsprLimit = 0.35, # F35%
-                                                      Plimit = 0,
-                                                      Alpha = 0.05),
+                                      # HCR = build_hcr(HCR = 5, # Tier3 HCR
+                                      #                 DynamicHCR = FALSE, # equilibrium reference points
+                                      #                 FsprTarget = 0.4, # F40%
+                                      #                 FsprLimit = 0.35, # F35%
+                                      #                 Plimit = 0,
+                                      #                 Alpha = 0.05),
                                       M1Fun = build_M1(M1_model = 2) # Estimate M
 )
 
@@ -204,6 +206,19 @@ bridging_model_6 <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
 # (cannibalism)
 ms_model <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
                               inits = bridging_model_6$estimated_params, # Initial parameters = 0
+                              file = NULL, # Don't save
+                              estimateMode = 0, # Estimate
+                              random_rec = FALSE, # No random recruitment
+                              verbose = 1,
+                              phase = NULL,
+                              suit_meanyr = 2015,
+                              initMode = 1,
+                              msmMode = 1, # Multi-species model
+                              M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
+)
+
+ms_model_RE <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
+                              inits = ms_model$estimated_params, # Initial parameters = 0
                               file = NULL, # Don't save
                               estimateMode = 0, # Estimate
                               random_rec = TRUE, # No random recruitment
@@ -358,11 +373,22 @@ plot_recruitment(model_list, model_names = model_names, file = "Results/Figures/
 
 
 # JNLL ----
-jnll_list <- lapply(list(bridging_model_2a, bridging_model_2b, bridging_model_3, bridging_model_4, bridging_model_5, ms_model), function(x) (x$quantities$jnll_comp))
-for(i in 1:length(jnll_list)){
-  jnll_list[[i]][3,] <- jnll_list[[i]][3,]/bridging_model_2a$data_list$fleet_control$Comp_weights
+source("R/Functions/likelihood comparisons.R", echo=TRUE)
+
+model_list <- list(bridging_model_2a, bridging_model_2b, bridging_model_3, bridging_model_4, bridging_model_5, ms_model, ms_model_RE)
+model_names = c("Model 2a", "Model 2b", "Model 3", "Model 4", "Model 5", "MS", "MS RE")
+
+ss_ll <- get_atf_ll(bridging_model_2a) %>%
+  rename("Model 2a" = Value)
+
+for(i in 2:length(model_list)){
+  ss_ll <- cbind(ss_ll,
+                 get_atf_ll(model_list[[i]]) %>%
+                   dplyr::select(Value)
+                 )
 }
-write.csv(do.call("rbind", jnll_list),
-          file = "Results/jnll_components.csv")
+colnames(ss_ll)[2:ncol(ss_ll)] <- model_names
+
+write.csv(ss_ll, file = "Results/Bridging_jnll.csv")
 
 

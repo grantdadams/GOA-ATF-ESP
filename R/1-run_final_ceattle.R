@@ -69,6 +69,21 @@ ceattle_ms_RE <- Rceattle::fit_mod(data_list = mydata_atf,
 )
 
 
+# Compare likelihoods ----
+source("R/Functions/likelihood comparisons.R", echo=TRUE)
+
+ss_ll <- get_atf_ll(ceattle_ss_RE) %>%
+  rename(SS = Value)
+ms_ll <- get_atf_ll(ceattle_ms_RE) %>%
+  rename(MS = Value)
+
+write.csv(cbind(ss_ll, ms_ll[,2]), file = "Results/Final_jnll.csv")
+
+
+
+## ABC ----
+abc_list <- lapply(quantities_list, function(x) abc_calc_tmb(x, datlist = dat))
+
 
 # Compare models ----
 # - SAFE model
@@ -113,14 +128,14 @@ model_list <- list(ceattle_ss_RE, ceattle_ms_RE)
 model_names = c("TMB single-spp", "TMB multi-spp")
 plot_catch(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
 
-source("R/Plot_b_eatent_1spp function.R", echo=TRUE)
+source("R/Functions/Plot_b_eatent_1spp function.R", echo=TRUE)
 plot_b_eaten(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
 
 
 # Plot diagnostics ----
 # * Comp data ----
 dev.off()
-source("R/Pearson plot function.R", echo=TRUE)
+source("R/Functions/Pearson plot function.R", echo=TRUE)
 plot_pearson(SAFE2023_mod, file = "Results/Figures/Diagnostics/Final_ADMB_")
 plot_pearson(ceattle_ss_RE, file = "Results/Figures/Diagnostics/Final_ss_")
 plot_pearson(ceattle_ms_RE, file = "Results/Figures/Diagnostics/Final_ms_")
