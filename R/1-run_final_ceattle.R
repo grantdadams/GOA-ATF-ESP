@@ -99,18 +99,18 @@ SAFE2023_mod$quantities$srv_bio_hat <- SAFE2023_index %>%
 
 
 # Plot final ----
-MPcols <- rev(oce::oce.colorsViridis(5))
-line_col <- c("grey60", MPcols[2:5])
-model_list <- list(SAFE2023_mod, ceattle_ss, ceattle_ss_RE, ceattle_ms, ceattle_ms_RE)
-model_names = c("ADMB", "TMB single-spp", "- RE", "TMB multi-spp", "- RE")
+MPcols <- rev(oce::oce.colorsViridis(3))
+line_col <- c("grey60", MPcols[2:3])
+model_list <- list(SAFE2023_mod, ceattle_ss_RE, ceattle_ms_RE)
+model_names = c("ADMB", "TMB single-spp", "TMB multi-spp")
 
 plot_biomass(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
 plot_ssb(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
 plot_recruitment(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
 
-line_col <- MPcols[2:5]
-model_list <- list(ceattle_ss, ceattle_ss_RE, ceattle_ms, ceattle_ms_RE)
-model_names = c("TMB single-spp", "- RE", "TMB multi-spp", "- RE")
+line_col <- MPcols[2:3]
+model_list <- list(ceattle_ss_RE, ceattle_ms_RE)
+model_names = c("TMB single-spp", "TMB multi-spp")
 plot_catch(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
 
 source("R/Plot_b_eatent_1spp function.R", echo=TRUE)
@@ -126,9 +126,9 @@ plot_pearson(ceattle_ss_RE, file = "Results/Figures/Diagnostics/Final_ss_")
 plot_pearson(ceattle_ms_RE, file = "Results/Figures/Diagnostics/Final_ms_")
 
 # * Index fits ----
-line_col <- c("grey60", MPcols[2:5])
-model_list <- list(SAFE2023_mod, ceattle_ss, ceattle_ss_RE, ceattle_ms, ceattle_ms_RE)
-model_names = c("ADMB", "TMB single-spp", "- RE", "TMB multi-spp", "- RE")
+line_col <- c("grey60", MPcols[2:3])
+model_list <- list(SAFE2023_mod, ceattle_ss_RE, ceattle_ms_RE)
+model_names = c("ADMB", "TMB single-spp", "TMB multi-spp")
 plot_index(model_list, model_names = model_names, file = "Results/Figures/Diagnostics/Final_", width = 6, height = 3, line_col = line_col)
 plot_logindex(model_list, model_names = model_names, file = "Results/Figures/Diagnostics/Final_", width = 6, height = 3, line_col = line_col)
 
