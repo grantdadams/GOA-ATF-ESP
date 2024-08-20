@@ -54,6 +54,19 @@ ceattle_ms <- Rceattle::fit_mod(data_list = mydata_atf,
                                 M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
 )
 
+ceattle_ms <- Rceattle::fit_mod(data_list = mydata_atf,
+                                inits = ceattle_ms$estimated_params, # Initial parameters = 0
+                                file = NULL, # Don't save
+                                estimateMode = 0, # Estimate
+                                random_rec = FALSE, # No random recruitment
+                                verbose = 1,
+                                phase = NULL,
+                                suit_meanyr = 2015,
+                                initMode = 1,
+                                msmMode = 1, # Multi-species model
+                                M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
+)
+
 # * Rec as random effects
 ceattle_ms_RE <- Rceattle::fit_mod(data_list = mydata_atf,
                                    inits = ceattle_ss_RE$estimated_params, # Initial parameters = 0
@@ -82,7 +95,7 @@ write.csv(cbind(ss_ll, ms_ll[,2]), file = "Results/Final_jnll.csv")
 
 
 ## ABC ----
-abc_list <- lapply(quantities_list, function(x) abc_calc_tmb(x, datlist = dat))
+# abc_list <- lapply(quantities_list, function(x) abc_calc_tmb(x, datlist = dat))
 
 
 # Compare models ----

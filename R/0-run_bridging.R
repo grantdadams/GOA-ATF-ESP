@@ -28,7 +28,7 @@ for(i in 1:nrow(mydata_atf$comp_data)){
 
 
 # Single-species models ----
-# * Model 2a ----
+# * Model 2 ----
 # - Fix n-at-age and parameters to 2023 SAFE-multinomial selectivity values
 mydata_atf_fixed <- mydata_atf
 mydata_atf_fixed$wt[,6:ncol(mydata_atf_fixed$wt)] <- mydata_atf_fixed$wt[,6:ncol(mydata_atf_fixed$wt)] * 0.001 # Convert wt to tonnes
@@ -72,37 +72,15 @@ inits$sel_inf[1,2,1] <- 2.83302919170 # Fem
 inits$sel_inf[1,2,2] <- 3.01664650825 # Males
 
 mydata_atf_fixed$estDynamics <- 0
-bridging_model_2a <- Rceattle::fit_mod(data_list = mydata_atf_fixed,
+bridging_model_2 <- Rceattle::fit_mod(data_list = mydata_atf_fixed,
                                        inits = inits, # Initial parameters = 0
                                        file = NULL, # Don't save
                                        estimateMode = 4, # Estimate
                                        random_rec = FALSE, # No random recruitment
                                        msmMode = 0, # Single species mode
                                        verbose = 1,
-                                       phase = "default",
-                                       initMode = 1,
-                                       TMBfilename = "src/ceattle_v01_11_atf_ll")
-
-
-
-# * Model 2b ----
-# - Fit single-species models with tier-3 HCR using ADMB likelihoods
-bridging_model_2b <- Rceattle::fit_mod(data_list = mydata_atf,
-                                       inits = NULL, # Initial parameters = 0
-                                       file = NULL, # Don't save
-                                       estimateMode = 0, # Estimate
-                                       random_rec = FALSE, # No random recruitment
-                                       msmMode = 0, # Single species mode
-                                       verbose = 1,
-                                       phase = "default",
-                                       initMode = 1,
-                                       # HCR = build_hcr(HCR = 5, # Tier3 HCR
-                                       #                 DynamicHCR = FALSE, # equilibrium reference points
-                                       #                 FsprTarget = 0.4, # F40%
-                                       #                 FsprLimit = 0.35, # F35%
-                                       #                 Plimit = 0,
-                                       #                 Alpha = 0.05),
-                                       TMBfilename = "src/ceattle_v01_11_atf_ll")
+                                       phase = NULL,
+                                       initMode = 1)
 
 
 # * Model 3 ----
@@ -356,30 +334,30 @@ SAFE2023multisel_mod$quantities$R[1,1:length(1977:2023)] <- SAFE2023multisel$Rec
 SAFE2023multisel_mod$quantities$fsh_bio_hat <- SAFE2023multisel$Catch
 
 # CEATTLE with fixed parameters
-# bridging_model_2a$quantities$biomass <- bridging_model_2a$quantities$biomass/1000
-# bridging_model_2a$quantities$biomassSSB <- bridging_model_2a$quantities$biomassSSB/1000
-bridging_model_2a$quantities$R <- bridging_model_2a$quantities$R/1000
-# bridging_model_2a$quantities$fsh_bio_hat <- bridging_model_2a$quantities$fsh_bio_hat/1000
-# bridging_model_2a$quantities$srv_bio_hat <- bridging_model_2a$quantities$srv_bio_hat/1000
+# bridging_model_2$quantities$biomass <- bridging_model_2$quantities$biomass/1000
+# bridging_model_2$quantities$biomassSSB <- bridging_model_2$quantities$biomassSSB/1000
+bridging_model_2$quantities$R <- bridging_model_2$quantities$R/1000
+# bridging_model_2$quantities$fsh_bio_hat <- bridging_model_2$quantities$fsh_bio_hat/1000
+# bridging_model_2$quantities$srv_bio_hat <- bridging_model_2$quantities$srv_bio_hat/1000
 
 
 # Plot bridging ----
-model_list <- list(SAFE2023_mod, SAFE2023multisel_mod, bridging_model_2a, bridging_model_2b, bridging_model_3, bridging_model_4, bridging_model_5, ms_model)
-model_names = c("Base", "Model 1", "Model 2a", "Model 2b", "Model 3", "Model 4", "Model 5", "MS")
+model_list <- list(SAFE2023_mod, SAFE2023multisel_mod, bridging_model_2, bridging_model_3, bridging_model_4, bridging_model_5, ms_model, ms_model_RE)
+model_names = c("Base - ADMB", "Model 1 - ADMB", "Model 2 - SS", "Model 3 - SS", "Model 4 - SS", "Model 5 - SS", "Model 6 - MS", "Model 7 - MS")
 
-plot_biomass(model_list, model_names = model_names, file = "Results/Figures/Bridging_", width = 6, height = 3)
-plot_ssb(model_list, model_names = model_names, file = "Results/Figures/Bridging_", width = 6, height = 3)
+plot_biomass(model_list, model_names = NULL, file = "Results/Figures/Bridging_", width = 6, height = 3)
+plot_ssb(model_list, model_names = NULL, file = "Results/Figures/Bridging_", width = 6, height = 3)
 plot_recruitment(model_list, model_names = model_names, file = "Results/Figures/Bridging_", width = 6, height = 3)
 
 
 # JNLL ----
 source("R/Functions/likelihood comparisons.R", echo=TRUE)
 
-model_list <- list(bridging_model_2a, bridging_model_2b, bridging_model_3, bridging_model_4, bridging_model_5, ms_model, ms_model_RE)
-model_names = c("Model 2a", "Model 2b", "Model 3", "Model 4", "Model 5", "MS", "MS RE")
+model_list <- list(bridging_model_2, bridging_model_3, bridging_model_4, bridging_model_5, ms_model, ms_model_RE)
+model_names = c("Model 2", "Model 3", "Model 4", "Model 5", "MS", "MS RE")
 
-ss_ll <- get_atf_ll(bridging_model_2a) %>%
-  rename("Model 2a" = Value)
+ss_ll <- get_atf_ll(bridging_model_2) %>%
+  rename("Model 2" = Value)
 
 for(i in 2:length(model_list)){
   ss_ll <- cbind(ss_ll,
