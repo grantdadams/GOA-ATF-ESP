@@ -28,13 +28,13 @@ ceattle_ss <- Rceattle::fit_mod(data_list = mydata_atf,
 
 # * Rec as random effects
 ceattle_ss_RE <- Rceattle::fit_mod(data_list = mydata_atf,
-                                   inits = NULL, # Initial parameters = 0
+                                   inits = ceattle_ss$estimated_params, # Initial parameters = 0
                                    file = NULL, # Don't save
                                    estimateMode = 0, # Estimate
                                    random_rec = TRUE, # Random recruitment
                                    msmMode = 0, # Single species mode
                                    verbose = 1,
-                                   phase = "default",
+                                   phase = NULL,
                                    initMode = 1)
 
 
@@ -48,7 +48,7 @@ ceattle_ms <- Rceattle::fit_mod(data_list = mydata_atf,
                                 random_rec = FALSE, # No random recruitment
                                 verbose = 1,
                                 phase = NULL,
-                                suit_meanyr = 2018,
+                                suit_meanyr = 2015,
                                 initMode = 1,
                                 msmMode = 1, # Multi-species model
                                 M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
@@ -56,13 +56,13 @@ ceattle_ms <- Rceattle::fit_mod(data_list = mydata_atf,
 
 # * Rec as random effects
 ceattle_ms_RE <- Rceattle::fit_mod(data_list = mydata_atf,
-                                   inits = ceattle_ms$estimated_params, # Initial parameters = 0
+                                   inits = ceattle_ss_RE$estimated_params, # Initial parameters = 0
                                    file = NULL, # Don't save
                                    estimateMode = 0, # Estimate
                                    random_rec = TRUE, # Random recruitment
                                    verbose = 1,
                                    phase = NULL,
-                                   suit_meanyr = 2018,
+                                   suit_meanyr = 2015,
                                    initMode = 1,
                                    msmMode = 1, # Multi-species model
                                    M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
@@ -119,6 +119,7 @@ plot_b_eaten(model_list, model_names = model_names, file = "Results/Figures/Fina
 
 # Plot diagnostics ----
 # * Comp data ----
+dev.off()
 source("R/Pearson plot function.R", echo=TRUE)
 plot_pearson(SAFE2023_mod, file = "Results/Figures/Diagnostics/Final_ADMB_")
 plot_pearson(ceattle_ss_RE, file = "Results/Figures/Diagnostics/Final_ss_")

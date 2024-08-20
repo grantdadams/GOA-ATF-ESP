@@ -554,6 +554,7 @@ Type objective_function<Type>::operator() () {
 
   // -- 3.4. Survey catchability parameters
   PARAMETER_VECTOR( ln_srv_q );                   // Survey catchability; n = [n_srv]
+  PARAMETER_MATRIX( srv_q_beta );                 // Survey catchability regression coefficient: ln(q_y) = q_mut + beta * index_y
   // PARAMETER_VECTOR( srv_q_pow );                  // Survey catchability power coefficient q * B ^ q_pow or beta ln(q_y) = q_mut + beta * index_y; n = [n_srv]
   PARAMETER_MATRIX( ln_srv_q_dev );               // Annual survey catchability deviates; n = [n_srv, nyrs_hind]
   PARAMETER_VECTOR( ln_sigma_srv_q );             // Log standard deviation of prior on survey catchability; n = [1, n_srv]
@@ -670,9 +671,12 @@ Type objective_function<Type>::operator() () {
   vector<Type>  Flimit = exp(ln_Flimit);                                            // Target F parameter on natural scale
   vector<Type>  Ftarget = exp(ln_Ftarget);                                          // Limit F parameter on natural scale
   vector<Type>  Finit = exp(ln_Finit);                                              // Initial F for non-equilibrium age-structure
-  vector<Type>  srr_mult(beta_rec_pars.cols()); srr_mult.setZero();                 // Environmental design matrix mult
+  vector<Type>  srr_mult(beta_rec_pars.cols()); srr_mult.setZero();                 // Environmental design matrix for rec
+  vector<Type>  srv_q_mult(srv_q_beta.cols()); srv_q_mult.setZero();                // Environmental design matrix for q
   vector<Type>  beta_rec_tmp(beta_rec_pars.cols()); beta_rec_tmp.setZero();         // Temporary vector to store beta parameters by species for matrix mult
   vector<Type>  env_rec_tmp(beta_rec_pars.cols()); env_rec_tmp.setZero();           // Temporary vector to store env data by year for matrix mult
+  vector<Type>  beta_q_tmp(srv_q_beta.cols()); beta_q_tmp.setZero();                // Temporary vector to store Q beta parameters by species for matrix mult
+  vector<Type>  env_q_tmp(srv_q_beta.cols()); env_q_tmp.setZero();                  // Temporary vector to store Q env data by year for matrix mult
   matrix<Type>  proj_F(nspp, nyrs); proj_F.setZero();                               // Projected F (Fabc/Ftac/etc) using harvest control rule
 
 
@@ -856,13 +860,14 @@ Type objective_function<Type>::operator() () {
   // 5.6. CATCHABILITY
   for(flt = 0; flt < n_flt; flt++){
     for(yr = 0; yr < nyrs_hind; yr++){
-      // Random walk, penalized deviate
-      if(srv_varying_q(flt) != 2){
         srv_q(flt, yr) = exp(ln_srv_q(flt) + ln_srv_q_dev(flt, yr));                 // Exponentiate
-      }
 
       // Q as a function of environmental index
       if(est_srv_q(flt) == 5){
+        beta_q_tmp = srv_q_beta.row(flt);
+        env_q_tmp = env_index.row(yr) ;
+        srv_q_mult =  env_q_tmp * beta_q_tmp;
+        srv_q(flt, yr) = exp(ln_srv_q(flt) + (srv_q_mult).sum());
         // srv_q(flt, yr) = exp(ln_srv_q(flt) + srv_q_pow(flt) * env_index(yr, srv_varying_q(flt)));
       }
     }
@@ -1596,7 +1601,7 @@ Type objective_function<Type>::operator() () {
         // - Recruitment Year > 1
         if(yr > 0){
           // - Option 1a: Use mean rec
-          if(proj_mean_rec == 1 & srr_pred_fun < 2){
+          if((proj_mean_rec == 1) & (srr_pred_fun < 2)){
             // Equilibrium RPs used mean rec across all years
             NByage0(sp, 0, 0, yr) = mean_rec(sp);
             NByageF(sp, 0, 0, yr) = mean_rec(sp);
@@ -1611,7 +1616,7 @@ Type objective_function<Type>::operator() () {
           }
 
           // - Option 1b: Use mean rec and env
-          if(proj_mean_rec == 1 & srr_pred_fun > 1){
+          if((proj_mean_rec == 1) & (srr_pred_fun > 1)){
             beta_rec_tmp = beta_rec_pars.row(sp);
             env_rec_tmp = env_index_srr.row(yr);
             srr_mult = env_rec_tmp * beta_rec_tmp;
@@ -1929,12 +1934,12 @@ Type objective_function<Type>::operator() () {
         // 6.9. FORECAST NUMBERS AT AGE, BIOMASS-AT-AGE (kg), and SSB-AT-AGE (kg)
         // -- 6.9.1. Forecasted recruitment
         // - Option 1: Use mean rec
-        if(proj_mean_rec == 1 & srr_pred_fun > 1){
+        if((proj_mean_rec == 1) & (srr_pred_fun > 1)){
           R(sp, yr) = exp(log(mean_rec(sp)) + rec_dev(sp, yr)); //  // Projections use mean R given bias in R0
         }
 
         // - Mean rec and environment
-        if(proj_mean_rec == 1 & srr_pred_fun < 2){
+        if((proj_mean_rec == 1) & (srr_pred_fun < 2)){
           beta_rec_tmp = beta_rec_pars.row(sp);
           env_rec_tmp = env_index_srr.row(yr);
           srr_mult = env_rec_tmp * beta_rec_tmp;
@@ -2248,6 +2253,10 @@ Type objective_function<Type>::operator() () {
 
             // Hindcast
             if(yr < nyrs_hind){
+
+              //ConsumAge(sp, age, yr) = CA(sp) * pow(wt(yr, age, sp) * Type(1000), CB( sp )) * fT(sp, yr) * fday( sp ) * wt(yr, age, sp) * 1000;//g/pred.yr
+              //ConsumAge(sp, age, yr) = ConsumAge(sp, age, yr) * Pvalue(sp) * Pyrs(yr, age, sp); //
+
               ConsumAge(sp, sex, age, yr) = CA(sp) * pow(wt( pop_wt_index(sp), sex, age, yr ) * Type(1000.0), 1 + CB( sp )) //  C_max = CA * W ^ 1+CB; where C_max is grams consumed per grams of predator per day
               * fT(sp, yr) * fday( sp );                           //  C_max * f(T) * wt * fday g/pred.yr
               ConsumAge(sp, sex, age, yr) = ConsumAge(sp, sex, age, yr) * Pvalue(sp) * Pyrs(sp, sex, age, yr); //
@@ -3098,7 +3107,7 @@ Type objective_function<Type>::operator() () {
 
           for (age = 0; age < nages(sp); age++) {
             for(sex = 0; sex < nsex(sp); sex ++){
-              biomassExpl(sp, yr) += NByage(sp, sex, age, flt_yr) * wt( flt_wt_index(flt), sex, age, yr_ind ) * sel(flt, sex, age, yr_ind) * proj_F_prop(flt); // FIXME using last year of selectivity;
+              biomassExpl(sp, yr) += NByage(sp, sex, age, yr) * wt( flt_wt_index(flt), sex, age, yr_ind ) * sel(flt, sex, age, yr_ind) * proj_F_prop(flt); // FIXME using last year of selectivity;
             }
           }
         }
@@ -3501,7 +3510,7 @@ Type objective_function<Type>::operator() () {
       if(flt_type(flt) == 1){
         if(flt_yr <= endyr){
           if(fsh_biom_obs(fsh_ind, 0) > 0){
-            // jnll_comp(1, flt) -= dnorm(log(fsh_biom_obs(fsh_ind, 0)), log(fsh_bio_hat(fsh_ind)) - square(fsh_std_dev)/2.0, fsh_std_dev, true) ;
+            jnll_comp(1, flt) -= dnorm(log(fsh_biom_obs(fsh_ind, 0)), log(fsh_bio_hat(fsh_ind)) - square(fsh_std_dev)/2.0, fsh_std_dev, true) ;
 
             // Martin's
             // jnll_comp(1, flt)+= 0.5*square((log(fsh_biom_obs(fsh_ind, 0))-log(fsh_bio_hat(fsh_ind)))/fsh_std_dev);
@@ -3545,33 +3554,34 @@ Type objective_function<Type>::operator() () {
         n_comp = nages(sp) * joint_adjust(comp_ind); // For sex = 3 (joint sex comp data)
 
         // Accumulation age
-        for(age = 0; age < n_comp; age++){
-          int age_test = age;
-          if(age >= nages(sp)){
-            age_test = age - nages(sp);
-          }
+        /*
+         for(age = 0; age < n_comp; age++){
+
+         int age_test = age;
+         if(age >= nages(sp)){
+         age_test = age - nages(sp);
+         }
 
 
-          // Lower
-          /*
-           if(age_test < flt_accum_age_lower(flt)){
-           comp_obs(comp_ind, flt_accum_age_lower(flt) + (nages(sp) * (joint_adjust(comp_ind)-1))) += comp_obs(comp_ind, age);
-           comp_obs(comp_ind, age) = 0;
+         // Lower
+         if(age_test < flt_accum_age_lower(flt)){
+         comp_obs(comp_ind, flt_accum_age_lower(flt) + (nages(sp) * (joint_adjust(comp_ind)-1))) += comp_obs(comp_ind, age);
+         comp_obs(comp_ind, age) = 0;
 
-           comp_hat(comp_ind, flt_accum_age_lower(flt) + (nages(sp) * (joint_adjust(comp_ind)-1))) += comp_hat(comp_ind, age);
-           comp_hat(comp_ind, age) = 0;
-           }
+         comp_hat(comp_ind, flt_accum_age_lower(flt) + (nages(sp) * (joint_adjust(comp_ind)-1))) += comp_hat(comp_ind, age);
+         comp_hat(comp_ind, age) = 0;
+         }
 
-           // Upper
-           if(age_test > flt_accum_age_upper(flt)){
-           comp_obs(comp_ind, flt_accum_age_upper(flt) + (nages(sp) * (joint_adjust(comp_ind)-1))) += comp_obs(comp_ind, age);
-           comp_obs(comp_ind, age) = 0;
+         // Upper
+         if(age_test > flt_accum_age_upper(flt)){
+         comp_obs(comp_ind, flt_accum_age_upper(flt) + (nages(sp) * (joint_adjust(comp_ind)-1))) += comp_obs(comp_ind, age);
+         comp_obs(comp_ind, age) = 0;
 
-           comp_hat(comp_ind, flt_accum_age_upper(flt) + (nages(sp) * (joint_adjust(comp_ind)-1))) += comp_hat(comp_ind, age);
-           comp_hat(comp_ind, age) = 0;
-           }
-           */
-        }
+         comp_hat(comp_ind, flt_accum_age_upper(flt) + (nages(sp) * (joint_adjust(comp_ind)-1))) += comp_hat(comp_ind, age);
+         comp_hat(comp_ind, age) = 0;
+         }
+         }
+         */
       }
       if(comp_type == 1){
         n_comp = nlengths(sp) * joint_adjust(comp_ind);
@@ -3589,7 +3599,6 @@ Type objective_function<Type>::operator() () {
 
                 // ATF's
                 jnll_comp(2, flt) -= comp_weights(flt) * Type(comp_n(comp_ind, 1)) * (comp_obs(comp_ind, ln) + 0.000001) * log((comp_hat(comp_ind, ln)+0.000001) / (comp_obs(comp_ind, ln) + 0.000001)) ;
-
 
               }
             }
@@ -3740,14 +3749,18 @@ Type objective_function<Type>::operator() () {
     }
 
     // Penalized/random deviate likelihood
-    if(((srv_varying_q(flt) == 1) | (srv_varying_q(flt) == 2)) & (flt_type(flt) == 2)){
+    // - Estimate_q = 1 or 2
+    // - Time_varying_q  = 1 or 2
+    if(((srv_varying_q(flt) == 1) | (srv_varying_q(flt) == 2)) & (flt_type(flt) == 2) & (est_srv_q(flt) == 1 | est_srv_q(flt) == 2)){
       for(yr = 0; yr < nyrs_hind; yr++){
         jnll_comp(8, flt) -= dnorm(ln_srv_q_dev(flt, yr), Type(0.0), time_varying_sigma_srv_q(flt), true );
       }
     }
 
     // Random walk
-    if((srv_varying_q(flt) == 4) & (flt_type(flt) == 2)){
+    // - Estimate_q = 1 or 2
+    // - Time_varying_q  = 4
+    if((srv_varying_q(flt) == 4) & (flt_type(flt) == 2) & (est_srv_q(flt) == 1 | est_srv_q(flt) == 2)){
 
       // Sum to zero constraint
       Type q_dev_sum = 0;
@@ -3780,7 +3793,7 @@ Type objective_function<Type>::operator() () {
      */
 
     // Slot 9 -- penalty for Bmsy > Bmsy_lim for Ricker
-    if(Bmsy_lim(sp) > 0 & (srr_pred_fun == 4) | (srr_pred_fun == 5)){ // Using pred_fun in case ianelli method is used
+    if((Bmsy_lim(sp) > 0) & ((srr_pred_fun == 4) | (srr_pred_fun == 5))){ // Using pred_fun in case ianelli method is used
       Type bmsy = 1.0/exp(rec_pars(sp, 2));
       bmsy =  posfun(Bmsy_lim(sp)/Type(1000000.0) - bmsy, Type(0.001), penalty);
       jnll_comp(9, sp) += 100 * penalty;
@@ -3790,6 +3803,7 @@ Type objective_function<Type>::operator() () {
     // Slot 10 -- init_dev -- Initial abundance-at-age
     if(initMode > 0){
       for (age = 1; age < nages(sp); age++) {
+
         // jnll_comp(11, sp) -= dnorm( init_dev(sp, age - 1), square(r_sigma(sp))/2.0, r_sigma(sp), true);
 
         // ATFs
@@ -3806,7 +3820,7 @@ Type objective_function<Type>::operator() () {
     }
 
     // Additional penalty for SRR curve (sensu AMAK/Ianelli)
-    if(srr_fun == 0 & srr_pred_fun  > 0){
+    if((srr_fun == 0) & (srr_pred_fun  > 0)){
       for (yr = 1; yr < nyrs_R_hat; yr++) {
         jnll_comp(10, sp) -= dnorm( log(R(sp, yr)), log(R_hat(sp,yr)), r_sigma(sp), true);
       }
@@ -3854,7 +3868,7 @@ Type objective_function<Type>::operator() () {
 
   for (sp = 0; sp < nspp; sp++) {
     // -- Single-species static reference points
-    if(DynamicHCR == 0 & forecast(sp) == 1 & msmMode == 0){
+    if((DynamicHCR == 0) & (forecast(sp) == 1) & (msmMode == 0)){
 
       // -- Avg F (have F limit)
       if(HCR == 2){
@@ -3875,7 +3889,7 @@ Type objective_function<Type>::operator() () {
     }
 
     // -- Single-species dynamic reference points
-    if(DynamicHCR == 1 & forecast(sp) == 1 & msmMode == 0){
+    if((DynamicHCR == 1) & (forecast(sp) == 1) & (msmMode == 0)){
 
       // -- Avg F (have F limit)
       if(HCR == 2){
@@ -3898,7 +3912,7 @@ Type objective_function<Type>::operator() () {
 
 
     // -- Multi-species static reference points (all depletion based)
-    if(forecast(sp) == 1 & msmMode > 0){
+    if((forecast(sp) == 1) & (msmMode > 0)){
 
       // -- Avg F (have F limit)
       if(HCR == 2){
@@ -4150,14 +4164,13 @@ Type objective_function<Type>::operator() () {
 
 
   // -- 12.8. Ration components
-  /*
    REPORT( ConsumAge );
-   REPORT( LbyAge );
-   REPORT( mnWt_obs );
+   // REPORT( LbyAge );
+   // REPORT( mnWt_obs );
    REPORT( fT );
    REPORT( ration );
 
-
+   /*
    // 12.9. Suitability components
    REPORT( suma_suit );
    REPORT( suit_main );

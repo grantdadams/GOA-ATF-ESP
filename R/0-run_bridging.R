@@ -165,10 +165,22 @@ bridging_model_4_nof <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
                                           phase = "default",
                                           initMode = 1)
 
-
 # * Model 5 ----
-# - Fit single-species models with tier-3 HCR using CEATTLE likelihoods, but estimate Ms
+# - Model 4 with rec as random effects
 bridging_model_5 <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
+                                          inits = bridging_model_4_nof$estimated_params, # Initial parameters = 0
+                                          file = NULL, # Don't save
+                                          estimateMode = 0, # Estimate
+                                          random_rec = TRUE, # No random recruitment
+                                          msmMode = 0, # Single species mode
+                                          verbose = 1,
+                                          phase = NULL,
+                                          initMode = 1)
+
+
+# * Model 6 ----
+# - Fit single-species models with tier-3 HCR using CEATTLE likelihoods, but estimate Ms
+bridging_model_6 <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
                                       inits = NULL, # Initial parameters = 0
                                       file = NULL, # Don't save
                                       estimateMode = 0, # Estimate
@@ -191,122 +203,122 @@ bridging_model_5 <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
 # Multi-species model ----
 # (cannibalism)
 ms_model <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
-                              inits = bridging_model_5$estimated_params, # Initial parameters = 0
+                              inits = bridging_model_6$estimated_params, # Initial parameters = 0
                               file = NULL, # Don't save
                               estimateMode = 0, # Estimate
-                              random_rec = FALSE, # No random recruitment
+                              random_rec = TRUE, # No random recruitment
                               verbose = 1,
                               phase = NULL,
-                              suit_meanyr = 2018,
+                              suit_meanyr = 2015,
                               initMode = 1,
                               msmMode = 1, # Multi-species model
                               M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
 )
 
 
-# * Input catch from single-species Tier-3 and project ----
-# ** Model specifications ----
-hind_yrs <- mydata_atf$styr: mydata_atf$endyr
-hind_nyrs <- length(hind_yrs)
-proj_yrs <- (mydata_atf$endyr + 1) : mydata_atf$projyr
-proj_nyrs <- length(proj_yrs)
-nflts = nrow(ms_model$data_list$fleet_control)
-new_years <- proj_yrs
-
-
-# ** Update rec devs (mean recruitment, not R0)
-ms_model_proj <- ms_model
-ms_model_proj$data_list$endyr <- 2050
-rec_dev <- log(mean(ms_model_proj$quantities$R[1,1:hind_nyrs]))  - log(ms_model_proj$quantities$R0[1]) #
-ms_model_proj$estimated_params$rec_dev[1,proj_yrs - ms_model_proj$data_list$styr + 1] <- replace(
-  ms_model_proj$estimated_params$rec_dev[1,proj_yrs - ms_model_proj$data_list$styr + 1],
-  values =  rec_dev)
-
-
-# -- wt
-proj_wt <- ms_model_proj$data_list$wt %>%
-  group_by(Wt_index , Sex) %>%
-  slice(rep(n(),  proj_nyrs)) %>%
-  mutate(Year = proj_yrs)
-ms_model_proj$data_list$wt  <- rbind(ms_model_proj$data_list$wt, proj_wt)
-ms_model_proj$data_list$wt <- dplyr::arrange(ms_model_proj$data_list$wt, Wt_index, Year)
-
-# -- Pyrs
-proj_Pyrs <- ms_model_proj$data_list$Pyrs %>%
-  group_by(Species, Sex) %>%
-  slice(rep(n(),  proj_nyrs)) %>%
-  mutate(Year = proj_yrs)
-ms_model_proj$data_list$Pyrs  <- rbind(ms_model_proj$data_list$Pyrs, proj_Pyrs)
-ms_model_proj$data_list$Pyrs <- dplyr::arrange(ms_model_proj$data_list$Pyrs, Species, Year)
-
-
-# ** GET RECOMMENDED TAC FROM Single-species model ----
-# - Get projected catch data from single-species model
-new_catch_data <- bridging_model_3$data_list$fsh_biom
-dat_fill_ind <- which(new_catch_data$Year %in% new_years & is.na(new_catch_data$Catch))
-new_catch_data$Catch[dat_fill_ind] <- bridging_model_3$quantities$fsh_bio_hat[dat_fill_ind]
-ms_model_proj$data_list$fsh_biom <- new_catch_data
-
-
-# ** Update parameters ----
-# -- F_dev
-ms_model_proj$estimated_params$F_dev <- cbind(ms_model_proj$estimated_params$F_dev, matrix(0, nrow= nrow(ms_model_proj$estimated_params$F_dev), ncol = length(new_years)))
-
-# -- Time-varing survey catachbilitiy - Assume last year - filled by columns
-ms_model_proj$estimated_params$ln_srv_q_dev <- cbind(ms_model_proj$estimated_params$ln_srv_q_dev, matrix(ms_model_proj$estimated_params$ln_srv_q_dev[,ncol(ms_model_proj$estimated_params$ln_srv_q_dev)], nrow= nrow(ms_model_proj$estimated_params$ln_srv_q_dev), ncol = length(new_years)))
-
-# -- Time-varing selectivity - Assume last year - filled by columns
-ln_sel_slp_dev = array(0, dim = c(2, nflts, 2, hind_nyrs + length(new_years)))  # selectivity deviations paramaters for logistic
-sel_inf_dev = array(0, dim = c(2, nflts, 2, hind_nyrs + length(new_years)))  # selectivity deviations paramaters for logistic
-# sel_coff_dev = array(0, dim = c(nflts, 2, nselages_om, hind_nyrs + length(new_years)))  # selectivity deviations paramaters for non-parameteric
-
-ln_sel_slp_dev[,,,1:hind_nyrs] <- ms_model_proj$estimated_params$ln_sel_slp_dev
-sel_inf_dev[,,,1:hind_nyrs] <- ms_model_proj$estimated_params$sel_inf_dev
-# sel_coff_dev[,,,1:hind_nyrs] <- ms_model_proj$estimated_params$# sel_coff_dev
-
-ln_sel_slp_dev[,,,(hind_nyrs + 1):(hind_nyrs + length(new_years))] <- ln_sel_slp_dev[,,,hind_nyrs]
-sel_inf_dev[,,,(hind_nyrs + 1):(hind_nyrs + length(new_years))] <- sel_inf_dev[,,,hind_nyrs]
-# sel_coff_dev[,,,(hind_nyrs + 1):(hind_nyrs + length(new_years))] <- # sel_coff_dev[,,,hind_nyrs]
-
-ms_model_proj$estimated_params$ln_sel_slp_dev <- ln_sel_slp_dev
-ms_model_proj$estimated_params$sel_inf_dev <- sel_inf_dev
-# ms_model_proj$estimated_params$# sel_coff_dev <- # sel_coff_dev
-
-
-# ** Update map ----
-# - (Only new parameter we are estimating is the F_dev of the new years)
-ms_model_proj$map <- build_map(
-  data_list = ms_model_proj$data_list,
-  params = ms_model_proj$estimated_params,
-  debug = TRUE,
-  random_rec = ms_model_proj$data_list$random_rec)
-ms_model_proj$map$mapFactor$dummy <- as.factor(NA); ms_model_proj$map$mapList$dummy <- NA
-
-
-# -- Estimate terminal F for catch
-new_f_yrs <- (ncol(ms_model_proj$map$mapList$F_dev) - length(new_years) + 1) : ncol(ms_model_proj$map$mapList$F_dev) # - Years of new F
-f_fleets <- ms_model_proj$data_list$fleet_control$Fleet_code[which(ms_model_proj$data_list$fleet_control$Fleet_type == 1)] # Fleet rows for F
-ms_model_proj$map$mapList$F_dev[f_fleets,new_f_yrs] <- replace(ms_model_proj$map$mapList$F_dev[f_fleets,new_f_yrs], values = 1:length(ms_model_proj$map$mapList$F_dev[f_fleets,new_f_yrs]))
-ms_model_proj$map$mapFactor$F_dev <- factor(ms_model_proj$map$mapList$F_dev)
-
-# ** Estimate F ----
-ms_model_proj <- Rceattle::fit_mod(data_list = ms_model_proj$data_list,
-                                   inits = ms_model_proj$estimated_params,
-                                   map = ms_model_proj$map,
-                                   bounds = NULL,
-                                   file = NULL, # Don't save
-                                   estimateMode = 1, # Estimate
-                                   random_rec = FALSE, # No random recruitment
-                                   verbose = 1,
-                                   phase = NULL,
-                                   suit_meanyr = 2018,
-                                   initMode = 1,
-                                   msmMode = 1, # Multi-species model
-                                   getsd = FALSE,
-                                   M1Fun = build_M1(M1_model = 2) # Estimate residual M
-)
-
-plot_ssb(ms_model_proj, incl_proj = T)
+# # * Input catch from single-species Tier-3 and project ----
+# # ** Model specifications ----
+# hind_yrs <- mydata_atf$styr: mydata_atf$endyr
+# hind_nyrs <- length(hind_yrs)
+# proj_yrs <- (mydata_atf$endyr + 1) : mydata_atf$projyr
+# proj_nyrs <- length(proj_yrs)
+# nflts = nrow(ms_model$data_list$fleet_control)
+# new_years <- proj_yrs
+#
+#
+# # ** Update rec devs (mean recruitment, not R0)
+# ms_model_proj <- ms_model
+# ms_model_proj$data_list$endyr <- 2050
+# rec_dev <- log(mean(ms_model_proj$quantities$R[1,1:hind_nyrs]))  - log(ms_model_proj$quantities$R0[1]) #
+# ms_model_proj$estimated_params$rec_dev[1,proj_yrs - ms_model_proj$data_list$styr + 1] <- replace(
+#   ms_model_proj$estimated_params$rec_dev[1,proj_yrs - ms_model_proj$data_list$styr + 1],
+#   values =  rec_dev)
+#
+#
+# # -- wt
+# proj_wt <- ms_model_proj$data_list$wt %>%
+#   group_by(Wt_index , Sex) %>%
+#   slice(rep(n(),  proj_nyrs)) %>%
+#   mutate(Year = proj_yrs)
+# ms_model_proj$data_list$wt  <- rbind(ms_model_proj$data_list$wt, proj_wt)
+# ms_model_proj$data_list$wt <- dplyr::arrange(ms_model_proj$data_list$wt, Wt_index, Year)
+#
+# # -- Pyrs
+# proj_Pyrs <- ms_model_proj$data_list$Pyrs %>%
+#   group_by(Species, Sex) %>%
+#   slice(rep(n(),  proj_nyrs)) %>%
+#   mutate(Year = proj_yrs)
+# ms_model_proj$data_list$Pyrs  <- rbind(ms_model_proj$data_list$Pyrs, proj_Pyrs)
+# ms_model_proj$data_list$Pyrs <- dplyr::arrange(ms_model_proj$data_list$Pyrs, Species, Year)
+#
+#
+# # ** GET RECOMMENDED TAC FROM Single-species model ----
+# # - Get projected catch data from single-species model
+# new_catch_data <- bridging_model_4$data_list$fsh_biom #FIXME: final single-species model
+# dat_fill_ind <- which(new_catch_data$Year %in% new_years & is.na(new_catch_data$Catch))
+# new_catch_data$Catch[dat_fill_ind] <- bridging_model_4$quantities$fsh_bio_hat[dat_fill_ind]
+# ms_model_proj$data_list$fsh_biom <- new_catch_data
+#
+#
+# # ** Update parameters ----
+# # -- F_dev
+# ms_model_proj$estimated_params$F_dev <- cbind(ms_model_proj$estimated_params$F_dev, matrix(0, nrow= nrow(ms_model_proj$estimated_params$F_dev), ncol = length(new_years)))
+#
+# # -- Time-varing survey catachbilitiy - Assume last year - filled by columns
+# ms_model_proj$estimated_params$ln_srv_q_dev <- cbind(ms_model_proj$estimated_params$ln_srv_q_dev, matrix(ms_model_proj$estimated_params$ln_srv_q_dev[,ncol(ms_model_proj$estimated_params$ln_srv_q_dev)], nrow= nrow(ms_model_proj$estimated_params$ln_srv_q_dev), ncol = length(new_years)))
+#
+# # -- Time-varing selectivity - Assume last year - filled by columns
+# ln_sel_slp_dev = array(0, dim = c(2, nflts, 2, hind_nyrs + length(new_years)))  # selectivity deviations paramaters for logistic
+# sel_inf_dev = array(0, dim = c(2, nflts, 2, hind_nyrs + length(new_years)))  # selectivity deviations paramaters for logistic
+# # sel_coff_dev = array(0, dim = c(nflts, 2, nselages_om, hind_nyrs + length(new_years)))  # selectivity deviations paramaters for non-parameteric
+#
+# ln_sel_slp_dev[,,,1:hind_nyrs] <- ms_model_proj$estimated_params$ln_sel_slp_dev
+# sel_inf_dev[,,,1:hind_nyrs] <- ms_model_proj$estimated_params$sel_inf_dev
+# # sel_coff_dev[,,,1:hind_nyrs] <- ms_model_proj$estimated_params$# sel_coff_dev
+#
+# ln_sel_slp_dev[,,,(hind_nyrs + 1):(hind_nyrs + length(new_years))] <- ln_sel_slp_dev[,,,hind_nyrs]
+# sel_inf_dev[,,,(hind_nyrs + 1):(hind_nyrs + length(new_years))] <- sel_inf_dev[,,,hind_nyrs]
+# # sel_coff_dev[,,,(hind_nyrs + 1):(hind_nyrs + length(new_years))] <- # sel_coff_dev[,,,hind_nyrs]
+#
+# ms_model_proj$estimated_params$ln_sel_slp_dev <- ln_sel_slp_dev
+# ms_model_proj$estimated_params$sel_inf_dev <- sel_inf_dev
+# # ms_model_proj$estimated_params$# sel_coff_dev <- # sel_coff_dev
+#
+#
+# # ** Update map ----
+# # - (Only new parameter we are estimating is the F_dev of the new years)
+# ms_model_proj$map <- build_map(
+#   data_list = ms_model_proj$data_list,
+#   params = ms_model_proj$estimated_params,
+#   debug = TRUE,
+#   random_rec = ms_model_proj$data_list$random_rec)
+# ms_model_proj$map$mapFactor$dummy <- as.factor(NA); ms_model_proj$map$mapList$dummy <- NA
+#
+#
+# # -- Estimate terminal F for catch
+# new_f_yrs <- (ncol(ms_model_proj$map$mapList$F_dev) - length(new_years) + 1) : ncol(ms_model_proj$map$mapList$F_dev) # - Years of new F
+# f_fleets <- ms_model_proj$data_list$fleet_control$Fleet_code[which(ms_model_proj$data_list$fleet_control$Fleet_type == 1)] # Fleet rows for F
+# ms_model_proj$map$mapList$F_dev[f_fleets,new_f_yrs] <- replace(ms_model_proj$map$mapList$F_dev[f_fleets,new_f_yrs], values = 1:length(ms_model_proj$map$mapList$F_dev[f_fleets,new_f_yrs]))
+# ms_model_proj$map$mapFactor$F_dev <- factor(ms_model_proj$map$mapList$F_dev)
+#
+# # ** Estimate F ----
+# ms_model_proj <- Rceattle::fit_mod(data_list = ms_model_proj$data_list,
+#                                    inits = ms_model_proj$estimated_params,
+#                                    map = ms_model_proj$map,
+#                                    bounds = NULL,
+#                                    file = NULL, # Don't save
+#                                    estimateMode = 1, # Estimate
+#                                    random_rec = FALSE, # No random recruitment
+#                                    verbose = 1,
+#                                    phase = NULL,
+#                                    suit_meanyr = 2015,
+#                                    initMode = 1,
+#                                    msmMode = 1, # Multi-species model
+#                                    getsd = FALSE,
+#                                    M1Fun = build_M1(M1_model = 2) # Estimate residual M
+# )
+#
+# plot_ssb(ms_model_proj, incl_proj = T)
 
 
 
@@ -337,8 +349,8 @@ bridging_model_2a$quantities$R <- bridging_model_2a$quantities$R/1000
 
 
 # Plot bridging ----
-model_list <- list(SAFE2023_mod, SAFE2023multisel_mod, bridging_model_2a, bridging_model_2b, bridging_model_3, bridging_model_4)
-model_names = c("Base", "Model 1", "Model 2a", "Model 2b", "Model 3", "Model 4")
+model_list <- list(SAFE2023_mod, SAFE2023multisel_mod, bridging_model_2a, bridging_model_2b, bridging_model_3, bridging_model_4, bridging_model_5, ms_model)
+model_names = c("Base", "Model 1", "Model 2a", "Model 2b", "Model 3", "Model 4", "Model 5", "MS")
 
 plot_biomass(model_list, model_names = model_names, file = "Results/Figures/Bridging_", width = 6, height = 3)
 plot_ssb(model_list, model_names = model_names, file = "Results/Figures/Bridging_", width = 6, height = 3)
@@ -346,7 +358,7 @@ plot_recruitment(model_list, model_names = model_names, file = "Results/Figures/
 
 
 # JNLL ----
-jnll_list <- lapply(list(bridging_model_2a, bridging_model_2b, bridging_model_3, bridging_model_4, ms_model), function(x) (x$quantities$jnll_comp))
+jnll_list <- lapply(list(bridging_model_2a, bridging_model_2b, bridging_model_3, bridging_model_4, bridging_model_5, ms_model), function(x) (x$quantities$jnll_comp))
 for(i in 1:length(jnll_list)){
   jnll_list[[i]][3,] <- jnll_list[[i]][3,]/bridging_model_2a$data_list$fleet_control$Comp_weights
 }
