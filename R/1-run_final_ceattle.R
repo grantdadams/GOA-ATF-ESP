@@ -77,6 +77,21 @@ ceattle_ms_RE <- Rceattle::fit_mod(data_list = mydata_atf,
                                    phase = NULL,
                                    suit_meanyr = 2015,
                                    initMode = 1,
+                                   loopnum = 3,
+                                   msmMode = 1, # Multi-species model
+                                   M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
+)
+
+ceattle_ms_RE <- Rceattle::fit_mod(data_list = mydata_atf,
+                                   inits = ceattle_ms_RE$estimated_params, # Initial parameters = 0
+                                   file = NULL, # Don't save
+                                   estimateMode = 0, # Estimate
+                                   random_rec = TRUE, # Random recruitment
+                                   verbose = 1,
+                                   phase = NULL,
+                                   suit_meanyr = 2015,
+                                   initMode = 1,
+                                   loopnum = 3,
                                    msmMode = 1, # Multi-species model
                                    M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
 )
@@ -161,7 +176,7 @@ plot_index(model_list, model_names = model_names, file = "Results/Figures/Diagno
 plot_logindex(model_list, model_names = model_names, file = "Results/Figures/Diagnostics/Final_", width = 6, height = 3, line_col = line_col)
 
 
-# * Run retrospectives ----
+# * Retrospectives ----
 ss_retro <- retrospective(ceattle_ss, peels = 10)
 ss_RE_retro <- retrospective(ceattle_ss_RE, peels = 10)
 
