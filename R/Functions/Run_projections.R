@@ -1,8 +1,7 @@
 ## Script to run the projections for various models
 library(tidyverse)
-source("~/GitHub/GOApollock/R/proj_fns.R", echo=TRUE)
 
-## Final 2022 model
+## Final model
 abc_calc_tmb <- function(replist, datlist){
   ## New automated way using the new 'spm' package. Confirmed the
   ## same as manually doing it with 'proj' below.
@@ -94,8 +93,8 @@ write_spm_dynamics_tmb <- function(replist, datlist, path){
   x <- c(x, paste(replist$NByage[1,2,,length(hindyrs)], collapse=' '))
 
   ind <- which(hindyrs %in% 1978:(ayr-1))
-  recs <- replist$R[,ind]
-  ssb <- replist$biomassSSB[,ind-1]
+  recs <- replist$R[1,ind]
+  ssb <- replist$biomassSSB[1,ind-1]
   x <- c(x, paste(length(recs), " # num of recruits"))
   x <- c(x, "# Recruits from 1978 to this year -1 due to uncertain last year")
   x <- c(x, paste(recs, collapse=' '))
@@ -111,7 +110,7 @@ write_spm_dynamics_tmb <- function(replist, datlist, path){
 #'   outputs
 #' @export
 get_exec_table_tmb <- function(replist, datlist, bigfile, maxABCratio=1){
-  ayr <- tail(datlist$yrs,1)
+  ayr <- datlist$endyr
   M <- c(.3,.3)
   means <- bigfile %>% filter(Yr > ayr & Yr <= ayr+2) %>%
     group_by(Alternative, Yr, Spp, SpNo) %>%
