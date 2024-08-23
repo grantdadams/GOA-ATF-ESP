@@ -160,6 +160,12 @@ source("R/Functions/Plot_b_eatent_1spp function.R", echo=TRUE)
 plot_b_eaten(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
 
 
+plot_m_at_age(ceattle_ms_RE, file = "Results/Figures/Final_", width = 5, height = 5)
+plot_m_at_age(ceattle_ms_RE, file = "Results/Figures/Final_", width = 5, height = 5, age = 2)
+plot_m_at_age(ceattle_ms_RE, file = "Results/Figures/Final_", width = 5, height = 5, age = 3)
+plot_m_at_age(ceattle_ms_RE, file = "Results/Figures/Final_", width = 5, height = 5, age = 4)
+ceattle_ms_RE$quantities$M1[1,1:2,1]
+
 # Plot diagnostics ----
 # * Comp data ----
 dev.off()
