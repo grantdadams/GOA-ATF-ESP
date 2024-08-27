@@ -124,6 +124,12 @@ SAFE2023_mod$quantities$biomass[1,1:length(1977:2023)] <- SAFE2023$Biomass
 SAFE2023_mod$quantities$biomassSSB[1,1:length(1977:2023)] <- SAFE2023$SSB
 SAFE2023_mod$quantities$R[1,1:length(1977:2023)] <- SAFE2023$Recruitment/1000
 
+# - Index
+index_mod <- ceattle_ss
+yrs_srv <- ceattle_ss$data_list$srv_biom$Year - 1977 + 1
+index_mod$quantities$biomass[1,] <- 1
+index_mod$quantities$biomass[1,yrs_srv] <- ceattle_ss$data_list$srv_biom$Observation
+
 # -- Comp data
 comp_temp <- SAFE2023_mod$data_list$comp_data %>%
   dplyr::select(-paste0("Comp_", 1:117))
