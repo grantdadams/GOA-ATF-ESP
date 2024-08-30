@@ -260,6 +260,15 @@ SAFE2023multisel_mod$quantities$biomassSSB[1,1:length(1977:2023)] <- SAFE2023mul
 SAFE2023multisel_mod$quantities$R[1,1:length(1977:2023)] <- SAFE2023multisel$Recruitment/1000
 SAFE2023multisel_mod$quantities$fsh_bio_hat <- SAFE2023multisel$Catch
 
+
+# - SAFE model with fixed multinomial and selectivity penalties set to the same for sexes (lines 470-472 of dat file)
+# -- USES CEATTLE MLEs
+SAFE2023multiselCEATTLE <- read_excel("Data/2023_SAFE_biomass_estimate.xlsx", sheet = "ADMB CEATTLE par")
+SAFE2023multiselCEATTLE_mod <- bridging_model_3
+SAFE2023multiselCEATTLE_mod$quantities$biomass[1,1:length(1977:2023)] <- SAFE2023multiselCEATTLE$Biomass
+SAFE2023multiselCEATTLE_mod$quantities$biomassSSB[1,1:length(1977:2023)] <- SAFE2023multiselCEATTLE$SSB
+SAFE2023multiselCEATTLE_mod$quantities$R[1,1:length(1977:2023)] <- SAFE2023multiselCEATTLE$Recruitment/1000
+
 # CEATTLE with fixed parameters
 # bridging_model_2$quantities$biomass <- bridging_model_2$quantities$biomass/1000
 # bridging_model_2$quantities$biomassSSB <- bridging_model_2$quantities$biomassSSB/1000
@@ -269,8 +278,8 @@ bridging_model_2$quantities$R <- bridging_model_2$quantities$R/1000
 
 
 # Plot bridging ----
-model_list <- list(SAFE2023_mod, SAFE2023multisel_mod, bridging_model_2, bridging_model_3, bridging_model_4, bridging_model_5)
-model_names = c("Base - ADMB", "Model 1 - ADMB", "Model 2 - SS", "Model 3 - SS", "Model 4 - SS", "Model 5 - SS")
+model_list <- list(SAFE2023_mod, SAFE2023multisel_mod, bridging_model_2, bridging_model_3, SAFE2023multiselCEATTLE_mod, bridging_model_4, bridging_model_5)
+model_names = c("Base - ADMB", "Model 1 - ADMB", "Model 2 - SS", "Model 3 - SS", "Model 4 - ADMB", "Model 5 - SS", "Model 6 - SS")
 
 plot_biomass(model_list, model_names = NULL, file = "Results/Figures/Bridging_", width = 6, height = 3)
 plot_ssb(model_list, model_names = NULL, file = "Results/Figures/Bridging_", width = 6, height = 3)
@@ -281,7 +290,7 @@ plot_recruitment(model_list, model_names = model_names, file = "Results/Figures/
 source("R/Functions/likelihood comparisons.R", echo=TRUE)
 
 model_list <- list(bridging_model_2, bridging_model_3, bridging_model_4, bridging_model_5)
-model_names = c("Model 2", "Model 3", "Model 4", "Model 5")
+model_names = c("Model 2", "Model 3", "Model 5", "Model 6")
 
 ss_ll <- get_atf_ll(bridging_model_2) %>%
   rename("Model 2" = Value)
