@@ -747,13 +747,13 @@ void model_parameters::get_numbers_at_age(void)
   for (j=1;j<nages;j++)
     {
       itmp=styr+1-j;
-      natage(1,styr,j)=mfexp(mean_log_rec-(M(1)*double(j-1))+rec_dev(itmp)) * 1000;
-      natage(2,styr,j)=mfexp(mean_log_rec-(M(2)*double(j-1))+rec_dev(itmp)) * 1000;
+      natage(1,styr,j)=mfexp(mean_log_rec-(M(1)*double(j-1))+rec_dev(itmp))/2 * 1000;
+      natage(2,styr,j)=mfexp(mean_log_rec-(M(2)*double(j-1))+rec_dev(itmp))/2 * 1000;
     }
     itmp=styr+1-nages;
   //last age    
-    natage(1,styr,nages)=mfexp(mean_log_rec+rec_dev(itmp)-(M(1)*(nages-1)))/(1.- surv(1)) * 1000;
-    natage(2,styr,nages)=mfexp(mean_log_rec+rec_dev(itmp)-(M(2)*(nages-1)))/(1.- surv(2)) * 1000;
+    natage(1,styr,nages)=mfexp(mean_log_rec+rec_dev(itmp)-(M(1)*(nages-1)))/(1.- surv(1))/2 * 1000;
+    natage(2,styr,nages)=mfexp(mean_log_rec+rec_dev(itmp)-(M(2)*(nages-1)))/(1.- surv(2))/2 * 1000;
  // Now do for next several years----------------------------------
   if(assess<3)
   {
@@ -762,7 +762,7 @@ void model_parameters::get_numbers_at_age(void)
     //for age 1 recruits in the last year use value read in from data file
     if(i<=(endyr-1))
     {
-      natage(1,i,1)=mfexp(mean_log_rec+rec_dev(i)) * 1000;
+      natage(1,i,1)=mfexp(mean_log_rec+rec_dev(i))/2 * 1000;
       natage(2,i,1)=natage(1,i,1);
     }
     else
@@ -777,7 +777,7 @@ void model_parameters::get_numbers_at_age(void)
    for (i=styr+1;i<=endyr;i++)
    {
   //for age 1 recruits in the last year use value read in from data file
-   natage(1,i,1)=mfexp(mean_log_rec+rec_dev(i)) * 1000;
+   natage(1,i,1)=mfexp(mean_log_rec+rec_dev(i))/2 * 1000;
    natage(2,i,1)=natage(1,i,1);
    }  
   }

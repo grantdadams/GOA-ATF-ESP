@@ -267,7 +267,7 @@ SAFE2023multiselCEATTLE <- read_excel("Data/2023_SAFE_biomass_estimate.xlsx", sh
 SAFE2023multiselCEATTLE_mod <- bridging_model_3
 SAFE2023multiselCEATTLE_mod$quantities$biomass[1,1:length(1977:2023)] <- SAFE2023multiselCEATTLE$Biomass
 SAFE2023multiselCEATTLE_mod$quantities$biomassSSB[1,1:length(1977:2023)] <- SAFE2023multiselCEATTLE$SSB
-SAFE2023multiselCEATTLE_mod$quantities$R[1,1:length(1977:2023)] <- SAFE2023multiselCEATTLE$Recruitment/1000
+SAFE2023multiselCEATTLE_mod$quantities$R[1,1:length(1977:2023)] <- SAFE2023multiselCEATTLE$Recruitment
 
 # CEATTLE with fixed parameters
 # bridging_model_2$quantities$biomass <- bridging_model_2$quantities$biomass/1000
