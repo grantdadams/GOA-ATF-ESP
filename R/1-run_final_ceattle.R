@@ -37,6 +37,32 @@ ceattle_ss_RE <- Rceattle::fit_mod(data_list = mydata_atf,
                                    phase = NULL,
                                    initMode = 1)
 
+# * Estimate M ----
+ceattle_ss_M <- Rceattle::fit_mod(data_list = mydata_atf,
+                                  inits = NULL, # Initial parameters = 0
+                                  file = NULL, # Don't save
+                                  estimateMode = 0, # Estimate
+                                  random_rec = FALSE, # No random recruitment
+                                  msmMode = 0, # Single species mode
+                                  verbose = 1,
+                                  phase = "default",
+                                  initMode = 1,
+                                  M1Fun = build_M1(M1_model = 2) # Estimate M (sex-specific)
+)
+
+# * Rec as random effects
+ceattle_ss_M_RE <- Rceattle::fit_mod(data_list = mydata_atf,
+                                     inits = ceattle_ss_M$estimated_params, # Initial parameters = 0
+                                     file = NULL, # Don't save
+                                     estimateMode = 0, # Estimate
+                                     random_rec = TRUE, # Random recruitment
+                                     msmMode = 0, # Single species mode
+                                     verbose = 1,
+                                     phase = NULL,
+                                     initMode = 1,
+                                     M1Fun = build_M1(M1_model = 2) # Estimate M (sex-specific)
+)
+
 
 
 # Multi-species model ----
@@ -102,10 +128,12 @@ source("R/Functions/likelihood comparisons.R", echo=TRUE)
 
 ss_ll <- get_atf_ll(ceattle_ss_RE) %>%
   rename(SS = Value)
+ss_M_ll <- get_atf_ll(ceattle_ss_M_RE) %>%
+  rename(MS = Value)
 ms_ll <- get_atf_ll(ceattle_ms_RE) %>%
   rename(MS = Value)
 
-write.csv(cbind(ss_ll, ms_ll[,2]), file = "Results/Final_jnll.csv")
+write.csv(cbind(ss_ll, ss_M_ll[,2], ms_ll[,2]), file = "Results/Final_jnll.csv")
 
 
 
@@ -118,24 +146,30 @@ write.csv(cbind(ss_ll, ms_ll[,2]), file = "Results/Final_jnll.csv")
 SAFE2023 <- read_excel("Data/2023_SAFE_biomass_estimate.xlsx", sheet = 1)
 SAFE2023_comp <- read_excel("Data/2023_SAFE_biomass_estimate.xlsx", sheet = 4)
 SAFE2023_index <- read_excel("Data/2023_SAFE_biomass_estimate.xlsx", sheet = 5)
+SAFE2023_sel <- read_excel("Data/2023_SAFE_biomass_estimate.xlsx", sheet = 6)
 
 SAFE2023_mod <- ceattle_ss
 SAFE2023_mod$quantities$biomass[1,1:length(1977:2023)] <- SAFE2023$Biomass
 SAFE2023_mod$quantities$biomassSSB[1,1:length(1977:2023)] <- SAFE2023$SSB
 SAFE2023_mod$quantities$R[1,1:length(1977:2023)] <- SAFE2023$Recruitment/1000
+SAFE2023_mod$quantities$sel[1,1,1:21,] <- SAFE2023_sel$Survsel_fem
+SAFE2023_mod$quantities$sel[1,2,1:21,] <- SAFE2023_sel$Survsel_mal
+SAFE2023_mod$quantities$sel[2,1,1:21,] <- SAFE2023_sel$Survsel_fem
+SAFE2023_mod$quantities$sel[2,2,1:21,] <- SAFE2023_sel$Survsel_mal
+SAFE2023_mod$quantities$sel[3,1,1:21,] <- SAFE2023_sel$Fishsel_fem
+SAFE2023_mod$quantities$sel[3,2,1:21,] <- SAFE2023_sel$Fishsel_mal
 
-# - Index
-index_mod <- ceattle_ss
-yrs_srv <- ceattle_ss$data_list$srv_biom$Year - 1977 + 1
-index_mod$quantities$biomass[1,] <- 1
-index_mod$quantities$biomass[1,yrs_srv] <- ceattle_ss$data_list$srv_biom$Observation
+
+SAFE2023_mod$quantities$fsh_bio_hat[1:length(1977:2023)] <- SAFE2023_index$`Pred catch`
 
 # -- Comp data
 comp_temp <- SAFE2023_mod$data_list$comp_data %>%
   dplyr::select(-paste0("Comp_", 1:117))
 
 comp_temp <- comp_temp %>%
-  left_join(SAFE2023_comp) # Exclude years not in obs
+  dplyr::left_join(SAFE2023_comp %>%
+                     dplyr::select(-Sample_size),
+                   by = c("Fleet_name", "Fleet_code", "Species", "Sex", "Age0_Length1", "Year", "Month")) # Exclude years not in obs
 
 SAFE2023_mod$quantities$comp_hat <- comp_temp %>%
   dplyr::select(paste0("Comp_", 1:117)) %>%
@@ -147,59 +181,122 @@ SAFE2023_mod$quantities$srv_bio_hat <- SAFE2023_index %>%
   dplyr::pull(Pred)
 
 
+# - Index model as biomass
+index_mod <- ceattle_ss
+yrs_srv <- ceattle_ss$data_list$srv_biom$Year - 1977 + 1
+index_mod$quantities$biomass[1,] <- 1
+index_mod$quantities$biomass[1,yrs_srv] <- ceattle_ss$data_list$srv_biom$Observation
+
+
 # Plot final ----
-MPcols <- rev(oce::oce.colorsViridis(3))
-line_col <- c("grey60", MPcols[2:3])
-model_list <- list(SAFE2023_mod, ceattle_ss_RE, ceattle_ms_RE)
-model_names = c("ADMB", "TMB single-spp", "TMB multi-spp")
+MPcols <- rev(oce::oce.colorsViridis(4))
+line_col <- c("grey60", MPcols[2:4])
+model_list <- list(SAFE2023_mod, ceattle_ss_RE, ceattle_ss_M_RE, ceattle_ms_RE)
+model_names = c("ADMB", "TMB single-spp (fix M)", "TMB single-spp (est M)", "TMB multi-spp")
 
 plot_biomass(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
 plot_ssb(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
 plot_recruitment(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
 
-line_col <- MPcols[2:3]
-model_list <- list(ceattle_ss_RE, ceattle_ms_RE)
-model_names = c("TMB single-spp", "TMB multi-spp")
 plot_catch(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
 
 source("R/Functions/Plot_b_eatent_1spp function.R", echo=TRUE)
 plot_b_eaten(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
 
 
-plot_m_at_age(ceattle_ms_RE, file = "Results/Figures/Final_", width = 5, height = 5)
-plot_m_at_age(ceattle_ms_RE, file = "Results/Figures/Final_", width = 5, height = 5, age = 2)
-plot_m_at_age(ceattle_ms_RE, file = "Results/Figures/Final_", width = 5, height = 5, age = 3)
-plot_m_at_age(ceattle_ms_RE, file = "Results/Figures/Final_", width = 5, height = 5, age = 4)
+plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, model_names = model_names[2:4], line_col = line_col[2:4])
+plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, age = 2, model_names = model_names[2:4], line_col = line_col[2:4])
+plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, age = 3, model_names = model_names[2:4], line_col = line_col[2:4])
+plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, age = 4, model_names = model_names[2:4], line_col = line_col[2:4])
+
 ceattle_ms_RE$quantities$M1[1,1:2,1]
 
 # Plot diagnostics ----
 # * Comp data ----
 dev.off()
+plot_comp(SAFE2023_mod, file = "Results/Figures/Diagnostics/Comp/Final_ADMB_"); legend("topright", legend = substitute(paste(bold('ADMB'))), bty = "n")
+plot_comp(ceattle_ss_RE, file = "Results/Figures/Diagnostics/Comp/Final_ss_"); legend("topright", legend = substitute(paste(bold('CEATTLE single-spp (fix M)'))), bty = "n")
+plot_comp(ceattle_ss_M_RE, file = "Results/Figures/Diagnostics/Comp/Final_ss_M_"); legend("topright", legend = substitute(paste(bold('CEATTLE single-spp (est M)'))), bty = "n")
+plot_comp(ceattle_ms_RE, file = "Results/Figures/Diagnostics/Comp/Final_ms_"); legend("topright", legend = substitute(paste(bold('CEATTLE multi-spp'))), bty = "n")
+
 source("R/Functions/Pearson plot function.R", echo=TRUE)
-plot_pearson(SAFE2023_mod, file = "Results/Figures/Diagnostics/Final_ADMB_")
-plot_pearson(ceattle_ss_RE, file = "Results/Figures/Diagnostics/Final_ss_")
-plot_pearson(ceattle_ms_RE, file = "Results/Figures/Diagnostics/Final_ms_")
+plot_pearson(SAFE2023_mod, file = "Results/Figures/Diagnostics/Comp/Final_ADMB_")
+plot_pearson(ceattle_ss_RE, file = "Results/Figures/Diagnostics/Comp/Final_ss_")
+plot_pearson(ceattle_ss_M_RE, file = "Results/Figures/Diagnostics/Comp/Final_ss_M_")
+plot_pearson(ceattle_ms_RE, file = "Results/Figures/Diagnostics/Comp/Final_ms_")
+
+
+
+
+# * OSA plots ---
+# TMB:::install.contrib("https://github.com/vtrijoulet/OSA_multivariate_dists/archive/main.zip")
+## devtools::install_github("fishfollower/compResidual/compResidual")
+source("R/Functions/Plot osa function.R", echo=TRUE)
+plot_osa_comps(SAFE2023_mod, file = "Results/Figures/Diagnostics/OSA/Final_ADMB_", model_name = "ADMB")
+plot_osa_comps(ceattle_ss_RE, file = "Results/Figures/Diagnostics/OSA/Final_ss_", model_name = "Single-spp fix M")
+plot_osa_comps(ceattle_ss_M_RE, file = "Results/Figures/Diagnostics/OSA/Final_ss_M_", model_name = "Single-spp est M")
+plot_osa_comps(ceattle_ms_RE, file = "Results/Figures/Diagnostics/OSA/Final_ms_", model_name = "Multi-spp")
+
+# o <- round(Neff*obs/rowSums(obs),0); p=exp/rowSums(exp)
+# ## default output
+# res <-  compResidual::resMulti(t(o), t(p))
 
 # * Index fits ----
-line_col <- c("grey60", MPcols[2:3])
-model_list <- list(SAFE2023_mod, ceattle_ss_RE, ceattle_ms_RE)
-model_names = c("ADMB", "TMB single-spp", "TMB multi-spp")
 plot_index(model_list, model_names = model_names, file = "Results/Figures/Diagnostics/Final_", width = 6, height = 3, line_col = line_col)
 plot_logindex(model_list, model_names = model_names, file = "Results/Figures/Diagnostics/Final_", width = 6, height = 3, line_col = line_col)
 
 
+# * Selectivity ----
+plot_selectivity(SAFE2023_mod); legend(y = 0.15, x = 12.5, legend = substitute(paste(bold('ADMB'))), bty = "n")
+plot_selectivity(ceattle_ss_RE); legend(y = 0.15, x = 12.5, legend = substitute(paste(bold('CEATTLE single-spp (fix M)'))), bty = "n")
+plot_selectivity(ceattle_ss_M_RE); legend(y = 0.15, x = 12.5, legend = substitute(paste(bold('CEATTLE single-spp (est M)'))), bty = "n")
+plot_selectivity(ceattle_ms_RE); legend(y = 0.15, x = 12.5, legend = substitute(paste(bold('CEATTLE multi-spp'))), bty = "n")
+
+
 # * Retrospectives ----
+
+# ** Single-spp ----
 ss_retro <- retrospective(ceattle_ss, peels = 10)
 ss_RE_retro <- retrospective(ceattle_ss_RE, peels = 10)
-
-ms_retro <- retrospective(ceattle_ms, peels = 10)
-ms_RE_retro <- retrospective(ceattle_ms_RE, peels = 10)
 
 plot_biomass(ss_retro$Rceattle_list, model_names = paste("Mohns =", round(ss_retro$mohns[1,2], 2)), file = "Results/Figures/Diagnostics/SS_", width = 6, height = 3)
 plot_biomass(ss_RE_retro$Rceattle_list, model_names = paste("Mohns =", round(ss_RE_retro$mohns[1,2], 2)), file = "Results/Figures/Diagnostics/SS_RE_", width = 6, height = 3)
 
+# ** Single-spp est M ----
+ss_M_retro <- retrospective(ceattle_ss_M, peels = 10)
+ss_M_RE_retro <- retrospective(ceattle_ss_M_RE, peels = 10)
+
+plot_biomass(ss_M_retro$Rceattle_list, model_names = paste("Mohns =", round(ss_M_retro$mohns[1,2], 2)), file = "Results/Figures/Diagnostics/SS_M_", width = 6, height = 3)
+plot_biomass(ss_M_RE_retro$Rceattle_list, model_names = paste("Mohns =", round(ss_M_RE_retro$mohns[1,2], 2)), file = "Results/Figures/Diagnostics/SS_M_RE_", width = 6, height = 3)
+
+# - M retro plot
+endyr <- sapply(ss_M_RE_retro$Rceattle_list, function(x) x$data_list$endyr)
+M_fem <- sapply(ss_M_RE_retro$Rceattle_list, function(x) x$quantities$M[1,1,1,1])
+M_males <- sapply(ss_M_RE_retro$Rceattle_list, function(x) x$quantities$M[1,2,1,1])
+
+plot(x = endyr, y = M_males, ylab = "M", xlab = "Terminal year", ylim = range(c(M_fem, M_males, 0, 0.4)), type = "l", lwd = 2)
+lines(x = endyr, y = M_fem, lwd = 2, col = "blue")
+abline(h = 0.2, lty = 2, col = "blue", lwd = 2)
+abline(h = 0.35, lty = 2, col = 1, lwd = 2)
+legend("bottomleft", legend = c("Females", "Males", "Est", "Fix"), col = c("blue", 1,1,1), lty = c(1,1,1,2), lwd = 2, bty = "n")
+
+# ** Multi-spp ----
+ms_retro <- retrospective(ceattle_ms, peels = 10)
+ms_RE_retro <- retrospective(ceattle_ms_RE, peels = 10)
+
 plot_biomass(ms_retro$Rceattle_list, model_names = paste("Mohns =", round(ms_retro$mohns[1,2], 2)), file = "Results/Figures/Diagnostics/MS_", width = 6, height = 3)
 plot_biomass(ms_RE_retro$Rceattle_list, model_names = paste("Mohns =", round(ms_RE_retro$mohns[1,2], 2)), file = "Results/Figures/Diagnostics/MS_RE_", width = 6, height = 3)
+
+# - M retro plot
+endyr <- sapply(ms_RE_retro$Rceattle_list, function(x) x$data_list$endyr)
+M_fem <- sapply(ms_RE_retro$Rceattle_list, function(x) x$quantities$M1[1,1,1])
+M_males <- sapply(ms_RE_retro$Rceattle_list, function(x) x$quantities$M1[1,2,1])
+
+plot(x = endyr, y = M_males, ylab = "M1", xlab = "Terminal year", ylim = range(c(M_fem, M_males, 0, 0.4)), type = "l", lwd = 2)
+lines(x = endyr, y = M_fem, lwd = 2, col = "blue")
+abline(h = 0.2, lty = 2, col = "blue", lwd = 2)
+abline(h = 0.35, lty = 2, col = 1, lwd = 2)
+legend("bottomleft", legend = c("Females", "Males", "Est", "Fix"), col = c("blue", 1,1,1), lty = c(1,1,1,2), lwd = 2, bty = "n")
 
 
 # * Profile sigmaR ----
@@ -229,52 +326,56 @@ profile_rsigma <- function(model = NULL, rsigma_vec = NULL, species = NULL){
     map <- Rceattle::build_map(data_list, params = inits, debug = FALSE, random_rec = FALSE)
 
     # Estimate
-    mod_prof <- fit_mod(
-      data_list = data_list,
-      inits = inits,
-      map =  map,
-      bounds = NULL,
-      file = NULL,
-      estimateMode = 1,
-      HCR = build_hcr(HCR = model$data_list$HCR, # Tier3 HCR
-                      DynamicHCR = model$data_list$DynamicHCR,
-                      FsprTarget = model$data_list$FsprTarget,
-                      FsprLimit = model$data_list$FsprLimit,
-                      Ptarget = model$data_list$Ptarget,
-                      Plimit = model$data_list$Plimit,
-                      Alpha = model$data_list$Alpha,
-                      Pstar = model$data_list$Pstar,
-                      Sigma = model$data_list$Sigma,
-                      Fmult = model$data_list$Fmult,
-                      HCRorder = model$data_list$HCRorder
-      ),
-      recFun = build_srr(srr_fun = model$data_list$srr_fun,
-                         srr_pred_fun  = model$data_list$srr_pred_fun ,
-                         proj_mean_rec  = model$data_list$proj_mean_rec ,
-                         srr_meanyr = model$data_list$srr_meanyr,
-                         R_hat_yr = model$data_list$R_hat_yr,
-                         srr_est_mode  = model$data_list$srr_est_mode ,
-                         srr_prior_mean  = model$data_list$srr_prior_mean,
-                         srr_prior_sd   = model$data_list$srr_prior_sd,
-                         Bmsy_lim = model$data_list$Bmsy_lim,
-                         srr_env_indices = model$data_list$srr_env_indices),
-      M1Fun = build_M1(M1_model= model$data_list$M1_model,
-                       updateM1 = FALSE,
-                       M1_use_prior = model$data_list$M1_use_prior,
-                       M2_use_prior = model$data_list$M2_use_prior,
-                       M1_prior_mean = model$data_list$M1_prior_mean,
-                       M1_prior_sd = model$data_list$M1_prior_sd),
-      random_rec = model$data_list$random_rec,
-      niter = model$data_list$niter,
-      msmMode = model$data_list$msmMode,
-      avgnMode = model$data_list$avgnMode,
-      suitMode = model$data_list$suitMode,
-      suit_meanyr = model$data_list$suit_meanyr,
-      initMode = model$data_list$initMode,
-      phase = NULL,
-      loopnum = 1,
-      getsd = FALSE,
-      verbose = 0)
+    mod_prof <- tryCatch(
+      fit_mod(
+        data_list = data_list,
+        inits = inits,
+        map =  map,
+        bounds = NULL,
+        file = NULL,
+        estimateMode = 1,
+        HCR = build_hcr(HCR = model$data_list$HCR, # Tier3 HCR
+                        DynamicHCR = model$data_list$DynamicHCR,
+                        FsprTarget = model$data_list$FsprTarget,
+                        FsprLimit = model$data_list$FsprLimit,
+                        Ptarget = model$data_list$Ptarget,
+                        Plimit = model$data_list$Plimit,
+                        Alpha = model$data_list$Alpha,
+                        Pstar = model$data_list$Pstar,
+                        Sigma = model$data_list$Sigma,
+                        Fmult = model$data_list$Fmult,
+                        HCRorder = model$data_list$HCRorder
+        ),
+        recFun = build_srr(srr_fun = model$data_list$srr_fun,
+                           srr_pred_fun  = model$data_list$srr_pred_fun ,
+                           proj_mean_rec  = model$data_list$proj_mean_rec ,
+                           srr_meanyr = model$data_list$srr_meanyr,
+                           R_hat_yr = model$data_list$R_hat_yr,
+                           srr_est_mode  = model$data_list$srr_est_mode ,
+                           srr_prior_mean  = model$data_list$srr_prior_mean,
+                           srr_prior_sd   = model$data_list$srr_prior_sd,
+                           Bmsy_lim = model$data_list$Bmsy_lim,
+                           srr_env_indices = model$data_list$srr_env_indices),
+        M1Fun = build_M1(M1_model= model$data_list$M1_model,
+                         updateM1 = FALSE,
+                         M1_use_prior = model$data_list$M1_use_prior,
+                         M2_use_prior = model$data_list$M2_use_prior,
+                         M1_prior_mean = model$data_list$M1_prior_mean,
+                         M1_prior_sd = model$data_list$M1_prior_sd),
+        random_rec = model$data_list$random_rec,
+        niter = model$data_list$niter,
+        msmMode = model$data_list$msmMode,
+        avgnMode = model$data_list$avgnMode,
+        suitMode = model$data_list$suitMode,
+        suit_meanyr = model$data_list$suit_meanyr,
+        initMode = model$data_list$initMode,
+        phase = NULL,
+        loopnum = 1,
+        getsd = FALSE,
+        verbose = 0),
+      error = function(ex) {
+        return(NULL) }
+    )
 
     mod_prof
   }
@@ -286,38 +387,42 @@ profile_rsigma <- function(model = NULL, rsigma_vec = NULL, species = NULL){
 }
 
 
-# - Run profile
+# -- Run profile
 profile1 <- profile_rsigma(model = ceattle_ss, rsigma_vec, species = 1)
 profile2 <- profile_rsigma(model = ceattle_ss_RE, rsigma_vec, species = 1)
 
-profile3 <- profile_rsigma(model = ceattle_ms, rsigma_vec, species = 1)
-profile4 <- profile_rsigma(model = ceattle_ms_RE, rsigma_vec, species = 1)
+profile3 <- profile_rsigma(model = ceattle_ss_M, rsigma_vec, species = 1)
+profile4 <- profile_rsigma(model = ceattle_ss_M_RE, rsigma_vec, species = 1)
 
-# - Combine
-pml_models <- list(profile1, profile3)
-mml_models <- list(profile2, profile4)
+profile5 <- profile_rsigma(model = ceattle_ms, rsigma_vec, species = 1)
+profile6 <- profile_rsigma(model = ceattle_ms_RE, rsigma_vec, species = 1)
+
+# -- Combine
+pml_models <- list(profile1, profile3, profile5)
+mml_models <- list(profile2, profile4, profile6)
 
 
-# - Plot
-par(mfrow = c(1,2))
+# -- Plot
+par(mfrow = c(1,3))
 
-for(i in 1:2){
+for(i in 1:3){
 
   # -- Plot penalized likelihood profile
   y = sapply(pml_models[[i]], function(x) x$opt$objective)
   y = y-min(y)
 
-  plot(y = y, x = rsigma_vec, ylab = "dNLL", xlab = "sigmaR", type = "l", main = c("Single-spp", "Multi-spp")[i], col = "red", ylim = c(0,10))
+  plot(y = y, x = rsigma_vec, ylab = "dNLL", xlab = "sigmaR", type = "l", main = c("Single-spp (fix M)", "Single-spp (est M)", "Multi-spp")[i], col = "red", ylim = c(0,10))
 
   # -- Plot marginalized maximum likelihood profile
-  y = sapply(mml_models[[i]], function(x) x$opt$objective)
+  null_opt <- sapply(mml_models[[i]], function(x) !is.null(x))
+  y = sapply(mml_models[[i]][null_opt], function(x) x$opt$objective)
   y = y-min(y)
-  lines(y = y, x = rsigma_vec, col = 1)
+  lines(y = y, x = rsigma_vec[null_opt], col = 1)
 
   # -- Plot MLE
-  abline(v = exp(list(ceattle_ss_RE, ceattle_ms_RE)[[i]]$estimated_params$ln_rec_sigma[1]), lty = 2)
+  abline(v = exp(list(ceattle_ss_RE, ceattle_ss_M_RE, ceattle_ms_RE)[[i]]$estimated_params$ln_rec_sigma[1]), lty = 2)
 }
 
-legend("topright", c("Penalized likelihood", "Random effects", "Minima"), col = c(2,1,1), lty = c(1,1,2), bty = "n")
+legend("bottomright", c("Penalized likelihood", "Random effects", "Minima"), col = c(2,1,1), lty = c(1,1,2), bty = "n")
 
 
