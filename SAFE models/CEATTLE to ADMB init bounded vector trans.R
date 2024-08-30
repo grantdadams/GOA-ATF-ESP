@@ -8,3 +8,8 @@ R0
 recdevs
 
 bridging_model_3$quantities$R[1,1:47]
+
+fdev <- bridging_model_3$estimated_params$F_dev[3,]
+m=mean(fdev)
+Fhat=bridging_model_3$estimated_params$ln_mean_F[3]+m
+fdev=fdev-m
