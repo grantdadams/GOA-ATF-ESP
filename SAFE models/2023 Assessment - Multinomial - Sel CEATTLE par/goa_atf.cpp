@@ -592,11 +592,6 @@ void model_parameters::userfunction(void)
     }
   }
     evaluate_the_objective_function();  
-#ifdef DEBUG
-  std::cout << "DEBUG: Total gradient stack used is " << gradient_structure::get()->GRAD_STACK1->total() << " out of " << gradient_structure::get_GRADSTACK_BUFFER_SIZE() << std::endl;;
-  std::cout << "DEBUG: Total dvariable address used is " << gradient_structure::get()->GRAD_LIST->total_addresses() << " out of " << gradient_structure::get_MAX_DLINKS() << std::endl;;
-  std::cout << "DEBUG: Total dvariable address used is " << gradient_structure::get()->ARR_LIST1->get_max_last_offset() << " out of " << gradient_structure::get_ARRAY_MEMBLOCK_SIZE() << std::endl;;
-#endif
 }
 
 void model_parameters::get_selectivity(void)
@@ -752,13 +747,13 @@ void model_parameters::get_numbers_at_age(void)
   for (j=1;j<nages;j++)
     {
       itmp=styr+1-j;
-      natage(1,styr,j)=mfexp(mean_log_rec-(M(1)*double(j-1))+rec_dev(itmp));
-      natage(2,styr,j)=mfexp(mean_log_rec-(M(2)*double(j-1))+rec_dev(itmp));
+      natage(1,styr,j)=mfexp(mean_log_rec-(M(1)*double(j-1))+rec_dev(itmp)) * 1000;
+      natage(2,styr,j)=mfexp(mean_log_rec-(M(2)*double(j-1))+rec_dev(itmp)) * 1000;
     }
     itmp=styr+1-nages;
   //last age    
-    natage(1,styr,nages)=mfexp(mean_log_rec+rec_dev(itmp)-(M(1)*(nages-1)))/(1.- surv(1));
-    natage(2,styr,nages)=mfexp(mean_log_rec+rec_dev(itmp)-(M(2)*(nages-1)))/(1.- surv(2));
+    natage(1,styr,nages)=mfexp(mean_log_rec+rec_dev(itmp)-(M(1)*(nages-1)))/(1.- surv(1)) * 1000;
+    natage(2,styr,nages)=mfexp(mean_log_rec+rec_dev(itmp)-(M(2)*(nages-1)))/(1.- surv(2)) * 1000;
  // Now do for next several years----------------------------------
   if(assess<3)
   {
@@ -767,7 +762,7 @@ void model_parameters::get_numbers_at_age(void)
     //for age 1 recruits in the last year use value read in from data file
     if(i<=(endyr-1))
     {
-      natage(1,i,1)=mfexp(mean_log_rec+rec_dev(i));
+      natage(1,i,1)=mfexp(mean_log_rec+rec_dev(i)) * 1000;
       natage(2,i,1)=natage(1,i,1);
     }
     else
@@ -782,7 +777,7 @@ void model_parameters::get_numbers_at_age(void)
    for (i=styr+1;i<=endyr;i++)
    {
   //for age 1 recruits in the last year use value read in from data file
-   natage(1,i,1)=mfexp(mean_log_rec+rec_dev(i));
+   natage(1,i,1)=mfexp(mean_log_rec+rec_dev(i)) * 1000;
    natage(2,i,1)=natage(1,i,1);
    }  
   }
@@ -1407,7 +1402,7 @@ std::feclearexcept(FE_ALL_EXCEPT);
     gradient_structure::set_YES_SAVE_VARIABLES_VALUES();
     if (!arrmblsize) arrmblsize=15000000;
     model_parameters mp(arrmblsize,argc,argv);
-    mp.iprint = defaults::iprint;
+    mp.iprint=10;
     mp.preliminary_calculations();
     mp.computations(argc,argv);
 #ifdef DEBUG

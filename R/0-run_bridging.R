@@ -102,17 +102,6 @@ bridging_model_3 <- Rceattle::fit_mod(data_list = mydata_atf,
                                       #                 Alpha = 0.05)
                                       )
 
-# - No fishing
-bridging_model_3_nof <- Rceattle::fit_mod(data_list = mydata_atf,
-                                          inits = NULL, # Initial parameters = 0
-                                          file = NULL, # Don't save
-                                          estimateMode = 0, # Estimate
-                                          random_rec = FALSE, # No random recruitment
-                                          msmMode = 0, # Single species mode
-                                          verbose = 1,
-                                          phase = "default",
-                                          initMode = 1)
-
 
 # * Model 4 ----
 # - Fit single-species models with tier-3 HCR using CEATTLE likelihoods
@@ -134,21 +123,10 @@ bridging_model_4 <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
                                       #                 Alpha = 0.05)
                                       )
 
-# -- No fishing
-bridging_model_4_nof <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
-                                          inits = NULL, # Initial parameters = 0
-                                          file = NULL, # Don't save
-                                          estimateMode = 0, # Estimate
-                                          random_rec = FALSE, # No random recruitment
-                                          msmMode = 0, # Single species mode
-                                          verbose = 1,
-                                          phase = "default",
-                                          initMode = 1)
-
 # * Model 5 ----
 # - Model 4 with rec as random effects
 bridging_model_5 <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
-                                          inits = bridging_model_4_nof$estimated_params, # Initial parameters = 0
+                                          inits = bridging_model_4$estimated_params, # Initial parameters = 0
                                           file = NULL, # Don't save
                                           estimateMode = 0, # Estimate
                                           random_rec = TRUE, # No random recruitment
@@ -156,57 +134,6 @@ bridging_model_5 <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
                                           verbose = 1,
                                           phase = NULL,
                                           initMode = 1)
-
-
-# * Model 6 ----
-# - Fit single-species models with tier-3 HCR using CEATTLE likelihoods, but estimate Ms
-bridging_model_6 <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
-                                      inits = NULL, # Initial parameters = 0
-                                      file = NULL, # Don't save
-                                      estimateMode = 0, # Estimate
-                                      random_rec = FALSE, # No random recruitment
-                                      msmMode = 0, # Single species mode
-                                      verbose = 1,
-                                      phase = "default",
-                                      initMode = 1,
-                                      # HCR = build_hcr(HCR = 5, # Tier3 HCR
-                                      #                 DynamicHCR = FALSE, # equilibrium reference points
-                                      #                 FsprTarget = 0.4, # F40%
-                                      #                 FsprLimit = 0.35, # F35%
-                                      #                 Plimit = 0,
-                                      #                 Alpha = 0.05),
-                                      M1Fun = build_M1(M1_model = 2) # Estimate M
-)
-
-
-
-# Multi-species model ----
-# (cannibalism)
-ms_model <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
-                              inits = bridging_model_6$estimated_params, # Initial parameters = 0
-                              file = NULL, # Don't save
-                              estimateMode = 0, # Estimate
-                              random_rec = FALSE, # No random recruitment
-                              verbose = 1,
-                              phase = NULL,
-                              suit_meanyr = 2015,
-                              initMode = 1,
-                              msmMode = 1, # Multi-species model
-                              M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
-)
-
-ms_model_RE <- Rceattle::fit_mod(data_list = mydata_atf_ageerror,
-                              inits = ms_model$estimated_params, # Initial parameters = 0
-                              file = NULL, # Don't save
-                              estimateMode = 0, # Estimate
-                              random_rec = TRUE, # No random recruitment
-                              verbose = 1,
-                              phase = NULL,
-                              suit_meanyr = 2015,
-                              initMode = 1,
-                              msmMode = 1, # Multi-species model
-                              M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
-)
 
 
 # # * Input catch from single-species Tier-3 and project ----
@@ -342,8 +269,8 @@ bridging_model_2$quantities$R <- bridging_model_2$quantities$R/1000
 
 
 # Plot bridging ----
-model_list <- list(SAFE2023_mod, SAFE2023multisel_mod, bridging_model_2, bridging_model_3, bridging_model_4, bridging_model_5, ms_model, ms_model_RE)
-model_names = c("Base - ADMB", "Model 1 - ADMB", "Model 2 - SS", "Model 3 - SS", "Model 4 - SS", "Model 5 - SS", "Model 6 - MS", "Model 7 - MS")
+model_list <- list(SAFE2023_mod, SAFE2023multisel_mod, bridging_model_2, bridging_model_3, bridging_model_4, bridging_model_5)
+model_names = c("Base - ADMB", "Model 1 - ADMB", "Model 2 - SS", "Model 3 - SS", "Model 4 - SS", "Model 5 - SS")
 
 plot_biomass(model_list, model_names = NULL, file = "Results/Figures/Bridging_", width = 6, height = 3)
 plot_ssb(model_list, model_names = NULL, file = "Results/Figures/Bridging_", width = 6, height = 3)
@@ -353,8 +280,8 @@ plot_recruitment(model_list, model_names = model_names, file = "Results/Figures/
 # JNLL ----
 source("R/Functions/likelihood comparisons.R", echo=TRUE)
 
-model_list <- list(bridging_model_2, bridging_model_3, bridging_model_4, bridging_model_5, ms_model, ms_model_RE)
-model_names = c("Model 2", "Model 3", "Model 4", "Model 5", "MS", "MS RE")
+model_list <- list(bridging_model_2, bridging_model_3, bridging_model_4, bridging_model_5)
+model_names = c("Model 2", "Model 3", "Model 4", "Model 5")
 
 ss_ll <- get_atf_ll(bridging_model_2) %>%
   rename("Model 2" = Value)
