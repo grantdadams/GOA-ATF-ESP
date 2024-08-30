@@ -250,6 +250,7 @@ SAFE2023_mod <- bridging_model_3
 SAFE2023_mod$quantities$biomass[1,1:length(1977:2023)] <- SAFE2023$Biomass
 SAFE2023_mod$quantities$biomassSSB[1,1:length(1977:2023)] <- SAFE2023$SSB
 SAFE2023_mod$quantities$R[1,1:length(1977:2023)] <- SAFE2023$Recruitment/1000
+SAFE2023_mod$quantities$fsh_bio_hat[1:47] <- SAFE2023$PredCatch
 
 
 # - SAFE model with fixed multinomial and selectivity penalties set to the same for sexes (lines 470-472 of dat file)
@@ -258,7 +259,7 @@ SAFE2023multisel_mod <- bridging_model_3
 SAFE2023multisel_mod$quantities$biomass[1,1:length(1977:2023)] <- SAFE2023multisel$Biomass
 SAFE2023multisel_mod$quantities$biomassSSB[1,1:length(1977:2023)] <- SAFE2023multisel$SSB
 SAFE2023multisel_mod$quantities$R[1,1:length(1977:2023)] <- SAFE2023multisel$Recruitment/1000
-SAFE2023multisel_mod$quantities$fsh_bio_hat <- SAFE2023multisel$Catch
+SAFE2023multisel_mod$quantities$fsh_bio_hat <- SAFE2023multisel_mod$CatchSAFE2023multiselCEATTLE_mod$quantities$fsh_bio_hat[1:47] <- SAFE2023multisel$PredCatch
 
 
 # - SAFE model with fixed multinomial and selectivity penalties set to the same for sexes (lines 470-472 of dat file)
@@ -268,6 +269,7 @@ SAFE2023multiselCEATTLE_mod <- bridging_model_3
 SAFE2023multiselCEATTLE_mod$quantities$biomass[1,1:length(1977:2023)] <- SAFE2023multiselCEATTLE$Biomass
 SAFE2023multiselCEATTLE_mod$quantities$biomassSSB[1,1:length(1977:2023)] <- SAFE2023multiselCEATTLE$SSB
 SAFE2023multiselCEATTLE_mod$quantities$R[1,1:length(1977:2023)] <- SAFE2023multiselCEATTLE$Recruitment / 1000
+SAFE2023multiselCEATTLE_mod$quantities$fsh_bio_hat[1:47] <- SAFE2023multiselCEATTLE$PredCatch
 
 # CEATTLE with fixed parameters
 # bridging_model_2$quantities$biomass <- bridging_model_2$quantities$biomass/1000
