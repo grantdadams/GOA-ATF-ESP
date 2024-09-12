@@ -122,6 +122,57 @@ ceattle_ms_RE <- Rceattle::fit_mod(data_list = mydata_atf,
                                    M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
 )
 
+# Save outputs for ESP ----
+# Biomass eaten due to cannibalism, annual ration across all ages, and M at age 1-5
+years <- ceattle_ms_RE$data_list$styr:ceattle_ms_RE$data_list$endyr
+nyrs <- length(years)
+
+
+weighted_ration <- function(Rceattle, spp = 1, minage = 1, maxage = max(Rceattle$data_list$nages)){
+  yrs <- Rceattle$data_list$styr:Rceattle$data_list$endyr
+  spp_wt_index <- Rceattle$data_list$pop_wt_index
+
+  wt_f <- Rceattle$data_list$wt %>%
+    dplyr::filter(Wt_index == spp_wt_index &
+                    Year %in% yrs &
+                    Sex == 1) %>%
+    dplyr::select(paste0("Age", minage:maxage))
+
+  wt_m <- Rceattle$data_list$wt %>%
+    dplyr::filter(Wt_index == spp_wt_index &
+                    Year %in% yrs &
+                    Sex == 2) %>%
+    dplyr::select(paste0("Age", minage:maxage))
+
+  females <- apply(Rceattle$quantities$ration[spp,1,minage:maxage,1:length(yrs)] * Rceattle$quantities$NByage[spp,1,minage:maxage,1:length(yrs)] * wt_f, 1, sum)
+
+  males <- apply(Rceattle$quantities$ration[spp,2,minage:maxage,1:length(yrs)] * Rceattle$quantities$NByage[spp,2,minage:maxage,1:length(yrs)] * wt_m, 1, sum)
+
+  return(
+    males + females
+    )
+}
+
+ESP_data <- data.frame(
+  Year = years,
+  Beaten_tonnes = apply(ceattle_ms_RE$quantities$B_eaten_as_prey[,,,1:nyrs], 3, sum),
+  Ration_tonnes = weighted_ration(ceattle_ms_RE),
+
+  # - M-at-age/sex
+  M_f_age1 = ceattle_ms_RE$quantities$M[1,1,1,1:nyrs],
+  M_f_age2 = ceattle_ms_RE$quantities$M[1,1,2,1:nyrs],
+  M_f_age3 = ceattle_ms_RE$quantities$M[1,1,3,1:nyrs],
+  M_f_age4 = ceattle_ms_RE$quantities$M[1,1,4,1:nyrs],
+  M_f_age5 = ceattle_ms_RE$quantities$M[1,1,5,1:nyrs],
+
+  M_m_age1 = ceattle_ms_RE$quantities$M[1,2,1,1:nyrs],
+  M_m_age2 = ceattle_ms_RE$quantities$M[1,2,2,1:nyrs],
+  M_m_age3 = ceattle_ms_RE$quantities$M[1,2,3,1:nyrs],
+  M_m_age4 = ceattle_ms_RE$quantities$M[1,2,4,1:nyrs],
+  M_m_age5 = ceattle_ms_RE$quantities$M[1,2,5,1:nyrs]
+)
+write.csv(ESP_data, file = "Results/MS CEATTLE ESP indicators.csv")
+
 
 # Compare likelihoods ----
 source("R/Functions/likelihood comparisons.R", echo=TRUE)
@@ -194,6 +245,7 @@ line_col <- c("grey60", MPcols[2:4])
 model_list <- list(SAFE2023_mod, ceattle_ss_RE, ceattle_ss_M_RE, ceattle_ms_RE)
 model_names = c("ADMB", "TMB single-spp (fix M)", "TMB single-spp (est M)", "TMB multi-spp")
 
+# * Time-series ----
 plot_biomass(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
 plot_ssb(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
 plot_recruitment(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
@@ -203,13 +255,36 @@ plot_catch(model_list, model_names = model_names, file = "Results/Figures/Final_
 source("R/Functions/Plot_b_eatent_1spp function.R", echo=TRUE)
 plot_b_eaten(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
 
-
+# * Mortality ----
 plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, model_names = model_names[2:4], line_col = line_col[2:4])
 plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, age = 2, model_names = model_names[2:4], line_col = line_col[2:4])
 plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, age = 3, model_names = model_names[2:4], line_col = line_col[2:4])
 plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, age = 4, model_names = model_names[2:4], line_col = line_col[2:4])
+plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, age = 5, model_names = model_names[2:4], line_col = line_col[2:4])
+plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, age = 6, model_names = model_names[2:4], line_col = line_col[2:4])
+plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, age = 7, model_names = model_names[2:4], line_col = line_col[2:4])
+plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, age = 8, model_names = model_names[2:4], line_col = line_col[2:4])
 
-ceattle_ms_RE$quantities$M1[1,1:2,1]
+# - M1
+round(ceattle_ms_RE$quantities$M1[1,1:2,1], 3)
+
+# - Females average M
+round(mean(ceattle_ms_RE$quantities$M[1,1,1,1:length(1977:2023)]), 3)
+round(mean(ceattle_ms_RE$quantities$M[1,1,2,1:length(1977:2023)]), 3)
+round(mean(ceattle_ms_RE$quantities$M[1,1,3,1:length(1977:2023)]), 3)
+round(mean(ceattle_ms_RE$quantities$M[1,1,4,1:length(1977:2023)]), 3)
+round(mean(ceattle_ms_RE$quantities$M[1,1,5,1:length(1977:2023)]), 3)
+round(mean(ceattle_ms_RE$quantities$M[1,1,6,1:length(1977:2023)]), 3)
+
+# - Males average M
+round(mean(ceattle_ms_RE$quantities$M[1,2,1,1:length(1977:2023)]), 3)
+round(mean(ceattle_ms_RE$quantities$M[1,2,2,1:length(1977:2023)]), 3)
+round(mean(ceattle_ms_RE$quantities$M[1,2,3,1:length(1977:2023)]), 3)
+round(mean(ceattle_ms_RE$quantities$M[1,2,4,1:length(1977:2023)]), 3)
+round(mean(ceattle_ms_RE$quantities$M[1,2,5,1:length(1977:2023)]), 3)
+round(mean(ceattle_ms_RE$quantities$M[1,2,6,1:length(1977:2023)]), 3)
+round(mean(ceattle_ms_RE$quantities$M[1,2,7,1:length(1977:2023)]), 3)
+
 
 # Plot diagnostics ----
 # * Comp data ----
@@ -231,6 +306,7 @@ plot_pearson(ceattle_ms_RE, file = "Results/Figures/Diagnostics/Comp/Final_ms_")
 # * OSA plots ---
 # TMB:::install.contrib("https://github.com/vtrijoulet/OSA_multivariate_dists/archive/main.zip")
 ## devtools::install_github("fishfollower/compResidual/compResidual")
+library(ggplot2)
 source("R/Functions/Plot osa function.R", echo=TRUE)
 plot_osa_comps(SAFE2023_mod, file = "Results/Figures/Diagnostics/OSA/Final_ADMB_", model_name = "ADMB")
 plot_osa_comps(ceattle_ss_RE, file = "Results/Figures/Diagnostics/OSA/Final_ss_", model_name = "Single-spp fix M")

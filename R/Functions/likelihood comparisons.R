@@ -40,7 +40,7 @@ get_atf_ll <- function(model){
     ifelse(is.null(model$opt$objective),  model$quantities$jnll, model$opt$objective),
     length(model$obj$par),
     exp(model$estimated_params$ln_srv_q)[1],
-    mean(model$quantities$R[,length(1977:2023)]),
+    mean(model$quantities$R[,1:length(1977:2023)]),
     exp(model$estimated_params$ln_rec_sigma)[1],
     NA,
     model$quantities$biomass[1,length(1977:2023)],

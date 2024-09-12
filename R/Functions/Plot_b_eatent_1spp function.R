@@ -101,7 +101,7 @@ plot_b_eaten <-  function(Rceattle,
   for (i in 1:length(Rceattle)) {
 
     # - Get quantities
-    quantity[,1:nyrs_vec[i] , i] <- apply(Rceattle[[i]]$quantities$B_eaten_as_prey[,,,1:nyrs_vec[i]], c(3), sum)
+    quantity[,1:nyrs_vec[i] , i] <- apply(Rceattle[[i]]$quantities$B_eaten_as_prey[,,,1:nyrs_vec[i]], 3, sum)
 
     # # Get SD of quantity
     # # NOTE: No uncertainty estimates currently

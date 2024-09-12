@@ -19,7 +19,7 @@ plot_osa_comps <- function(model, file = '', model_name = NULL){
 
   comp_obs <- model$data_list$comp_data
   comp_hat <- comp_obs %>%
-    dplyr::select(-grep("Comp_", colnames(comp_data)))
+    dplyr::select(-grep("Comp_", colnames(model$data_list$comp_data)))
   comp_hat <- cbind(comp_hat, model$quantities$comp_hat)
 
 
