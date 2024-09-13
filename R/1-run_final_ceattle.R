@@ -378,7 +378,7 @@ legend("bottomleft", legend = c("Females", "Males", "Est", "Fix"), col = c("blue
 # * Profile sigmaR ----
 rsigma_vec <- seq(from = 0.05, to = 2, by = 0.05)
 
-profile_rsigma <- function(model = NULL, rsigma_vec = NULL, species = NULL){
+profile_rsigma <- function(model = NULL, rsigma_vec = NULL, species = NULL, filename = NULL){
   ### Set up parallel processing
   library(foreach)
   library(doParallel)
@@ -408,7 +408,7 @@ profile_rsigma <- function(model = NULL, rsigma_vec = NULL, species = NULL){
         inits = inits,
         map =  map,
         bounds = NULL,
-        file = NULL,
+        file = ifelse(is.null(filename), NULL, paste0(filename, rsigma_vec[i])),
         estimateMode = 1,
         HCR = build_hcr(HCR = model$data_list$HCR, # Tier3 HCR
                         DynamicHCR = model$data_list$DynamicHCR,
@@ -471,7 +471,7 @@ profile3 <- profile_rsigma(model = ceattle_ss_M, rsigma_vec, species = 1)
 profile4 <- profile_rsigma(model = ceattle_ss_M_RE, rsigma_vec, species = 1)
 
 profile5 <- profile_rsigma(model = ceattle_ms, rsigma_vec, species = 1)
-profile6 <- profile_rsigma(model = ceattle_ms_RE, rsigma_vec, species = 1)
+profile6 <- profile_rsigma(model = ceattle_ms_RE, rsigma_vec, species = 1, filename = "Models/MS RE Profiles/MS RE ")
 
 # -- Combine
 pml_models <- list(profile1, profile3, profile5)
