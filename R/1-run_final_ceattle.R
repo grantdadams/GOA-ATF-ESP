@@ -419,13 +419,29 @@ legend("bottomright", c("Penalized likelihood", "Random effects", "Minima"), col
 
 
 # * Profile M ----
-m_vec <- seq(from = 0.1, to = 0.6, by = 0.02)
+library(ggplot2)
+m_vec <- seq(from = 0.1, to = 0.8, by = 0.02)
 m_profile <- profile_m(model = ceattle_ss_M_RE, m_vec = m_vec, species = 1)
 
-ll_vec <- sapply(m_profile, function(x) x$opt$objective)
+null_vec <- sapply(m_profile, is.null)
+ll_vec <- sapply(m_profile, function(x) ifelse(is.null(x), NA, x$opt$objective))
 ll_mat <- matrix(ll_vec, length(m_vec), length(m_vec))
 contour(x = m_vec, y = m_vec, z = ll_mat, xlab = "Male M" , ylab = "Female M")
 
-ggplot(faithfuld, aes(waiting, eruptions, z = density))
+
+ll_df <- data.frame(F_Mort = sapply(m_profile, function(x) ifelse(is.null(x), NA, x$quantities$M[1,1,1,1])),
+                    M_mort = sapply(m_profile, function(x) ifelse(is.null(x), NA, x$quantities$M[1,2,1,1])),
+                    LL = ll_vec)
+
+p1 <- ggplot(ll_df, aes(y = F_Mort, x = M_mort, z = LL)) +
+  geom_contour( bins = 15) +
+  geom_contour_filled( bins = 15) +
+  theme_classic() +
+  # xlim(0.1, 0.4) +
+  theme(legend.position="none")
+
+p1
+
+ggsave(filename = "Results/Figures/M profile.png", width = 6, height = 6, units = "in")
 
 

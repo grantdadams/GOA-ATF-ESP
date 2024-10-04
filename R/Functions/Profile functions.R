@@ -164,7 +164,7 @@ profile_m <- function(model = NULL, m_vec = NULL, species = NULL, filename = NUL
                                 suit_meanyr = model$data_list$suit_meanyr,
                                 initMode = model$data_list$initMode,
                                 phase = NULL,
-                                loopnum = 1,
+                                loopnum = 3,
                                 getsd = FALSE,
                                 verbose = 0),
                               error = function(ex) {
