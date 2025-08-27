@@ -7,12 +7,14 @@ library(dplyr)
 library(TMB)
 
 # Load data ----
+# * 2025 ----
 data_2025 <- Rceattle::read_data( file = "Data/GOA_25.1.1_arrowtooth_single_species_1977-2024.xlsx")
 data_2025$estDynamics = 0
 data_2025$srv_biom$Log_sd <- data_2025$srv_biom$Log_sd/data_2025$srv_biom$Observation
 data_2025$fleet_control$proj_F_prop <- c(1,1,1)
 
 
+# * 2023 ----
 data_2023 <- Rceattle::read_data( file = "Data/GOA_23.1.1_arrowtooth_single_species_1977-2023.xlsx")
 data_2023$estDynamics = 0
 data_2023$srv_biom$Log_sd <- data_2023$srv_biom$Log_sd/data_2023$srv_biom$Observation
@@ -33,7 +35,7 @@ ceattle_ss_2023 <- Rceattle::fit_mod(data_list = data_2023,
                                 initMode = 1)
 
 
-# * Fix data weight ----
+# * Fix data weighting ----
 data_2023$fleet_control$Comp_weights <- 1
 ceattle_ss_2023_dw <- Rceattle::fit_mod(data_list = data_2023,
                                      inits = NULL, # Initial parameters = 0
@@ -62,9 +64,8 @@ ceattle_ss_2023_dw_data <- Rceattle::fit_mod(data_list = data_2023,
                                         phase = FALSE,
                                         initMode = 1)
 
-# 2025 single-species models ----
-# - Fit single-species models and no fishing
-# * Fix M ----
+
+# 2025 data updates but remove all data after 2023 ----
 data_2025$endyr <- 2023
 ceattle_ss_2023_endyr <- Rceattle::fit_mod(data_list = data_2025,
                                 inits = NULL, # Initial parameters = 0
@@ -76,7 +77,8 @@ ceattle_ss_2023_endyr <- Rceattle::fit_mod(data_list = data_2025,
                                 phase = FALSE,
                                 initMode = 1)
 
-
+# 2025 single-species models ----
+# * Fix M ----
 data_2025$endyr <- 2025
 ceattle_ss <- Rceattle::fit_mod(data_list = data_2025,
                                 inits = NULL, # Initial parameters = 0
