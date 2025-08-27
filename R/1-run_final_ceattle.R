@@ -74,7 +74,7 @@ ceattle_ms <- Rceattle::fit_mod(data_list = mydata_atf,
                                 random_rec = FALSE, # No random recruitment
                                 verbose = 1,
                                 phase = NULL,
-                                suit_meanyr = 2015,
+                                suit_endyr = 2015,
                                 initMode = 1,
                                 msmMode = 1, # Multi-species model
                                 M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
