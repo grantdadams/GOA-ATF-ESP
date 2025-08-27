@@ -7,27 +7,93 @@ library(dplyr)
 library(TMB)
 
 # Load data ----
-mydata_atf <- Rceattle::read_data( file = "Data/GOA_23.1.1_arrowtooth_single_species_1977-2023.xlsx")
-mydata_atf$estDynamics = 0
-mydata_atf$srv_biom$Log_sd <- mydata_atf$srv_biom$Log_sd/mydata_atf$srv_biom$Observation
-mydata_atf$fleet_control$proj_F_prop <- c(1,1,1)
+data_2025 <- Rceattle::read_data( file = "Data/GOA_25.1.1_arrowtooth_single_species_1977-2024.xlsx")
+data_2025$estDynamics = 0
+data_2025$srv_biom$Log_sd <- data_2025$srv_biom$Log_sd/data_2025$srv_biom$Observation
+data_2025$fleet_control$proj_F_prop <- c(1,1,1)
 
 
-# Single-species models ----
+data_2023 <- Rceattle::read_data( file = "Data/GOA_23.1.1_arrowtooth_single_species_1977-2023.xlsx")
+data_2023$estDynamics = 0
+data_2023$srv_biom$Log_sd <- data_2023$srv_biom$Log_sd/data_2023$srv_biom$Observation
+data_2023$fleet_control$proj_F_prop <- c(1,1,1)
+
+
+# 2023 single-species models ----
 # - Fit single-species models and no fishing
 # * Fix M ----
-ceattle_ss <- Rceattle::fit_mod(data_list = mydata_atf,
+ceattle_ss_2023 <- Rceattle::fit_mod(data_list = data_2023,
                                 inits = NULL, # Initial parameters = 0
                                 file = NULL, # Don't save
                                 estimateMode = 0, # Estimate
                                 random_rec = FALSE, # No random recruitment
                                 msmMode = 0, # Single species mode
                                 verbose = 1,
-                                phase = TRUE,
+                                phase = FALSE,
                                 initMode = 1)
 
-# * Rec as random effects
-ceattle_ss_RE <- Rceattle::fit_mod(data_list = mydata_atf,
+
+# * Fix data weight ----
+data_2023$fleet_control$Comp_weights <- 1
+ceattle_ss_2023_dw <- Rceattle::fit_mod(data_list = data_2023,
+                                     inits = NULL, # Initial parameters = 0
+                                     file = NULL, # Don't save
+                                     estimateMode = 0, # Estimate
+                                     random_rec = FALSE, # No random recruitment
+                                     msmMode = 0, # Single species mode
+                                     verbose = 1,
+                                     phase = FALSE,
+                                     initMode = 1)
+
+
+
+# * Remove data before 1991 ----
+data_2023$index_data <- data_2023$index_data %>%
+  dplyr::filter(Year > 1990)
+data_2023$comp_data <- data_2023$comp_data %>%
+  dplyr::filter(Year > 1990)
+ceattle_ss_2023_dw_data <- Rceattle::fit_mod(data_list = data_2023,
+                                        inits = NULL, # Initial parameters = 0
+                                        file = NULL, # Don't save
+                                        estimateMode = 0, # Estimate
+                                        random_rec = FALSE, # No random recruitment
+                                        msmMode = 0, # Single species mode
+                                        verbose = 1,
+                                        phase = FALSE,
+                                        initMode = 1)
+
+# 2025 single-species models ----
+# - Fit single-species models and no fishing
+# * Fix M ----
+data_2025$endyr <- 2023
+ceattle_ss_2023_endyr <- Rceattle::fit_mod(data_list = data_2025,
+                                inits = NULL, # Initial parameters = 0
+                                file = NULL, # Don't save
+                                estimateMode = 0, # Estimate
+                                random_rec = FALSE, # No random recruitment
+                                msmMode = 0, # Single species mode
+                                verbose = 1,
+                                phase = FALSE,
+                                initMode = 1)
+
+
+data_2025$endyr <- 2025
+ceattle_ss <- Rceattle::fit_mod(data_list = data_2025,
+                                inits = NULL, # Initial parameters = 0
+                                file = NULL, # Don't save
+                                estimateMode = 0, # Estimate
+                                random_rec = FALSE, # No random recruitment
+                                msmMode = 0, # Single species mode
+                                verbose = 1,
+                                phase = FALSE,
+                                initMode = 1)
+
+plot_biomass(list(ceattle_ss, ceattle_ss_2023, ceattle_ss_2023_dw, ceattle_ss_2023_dw_data, ceattle_ss_2023_endyr),
+             model_names = c("2025", "2023", "2023 DW", "2023 DW data", "2023 w/ 2021 age"))
+
+
+# * Fix M random effects ----
+ceattle_ss_RE <- Rceattle::fit_mod(data_list = data_2025,
                                    inits = ceattle_ss$estimated_params, # Initial parameters = 0
                                    file = NULL, # Don't save
                                    estimateMode = 0, # Estimate
@@ -38,7 +104,7 @@ ceattle_ss_RE <- Rceattle::fit_mod(data_list = mydata_atf,
                                    initMode = 1)
 
 # * Estimate M ----
-ceattle_ss_M <- Rceattle::fit_mod(data_list = mydata_atf,
+ceattle_ss_M <- Rceattle::fit_mod(data_list = data_2025,
                                   inits = NULL, # Initial parameters = 0
                                   file = NULL, # Don't save
                                   estimateMode = 0, # Estimate
@@ -50,24 +116,24 @@ ceattle_ss_M <- Rceattle::fit_mod(data_list = mydata_atf,
                                   M1Fun = build_M1(M1_model = 2) # Estimate M (sex-specific)
 )
 
-# * Rec as random effects
-ceattle_ss_M_RE <- Rceattle::fit_mod(data_list = mydata_atf,
+# * Estimate M random effects ----
+ceattle_ss_M_RE <- Rceattle::fit_mod(data_list = data_2025,
                                      inits = ceattle_ss_M$estimated_params, # Initial parameters = 0
                                      file = NULL, # Don't save
                                      estimateMode = 0, # Estimate
                                      random_rec = TRUE, # Random recruitment
                                      msmMode = 0, # Single species mode
                                      verbose = 1,
-                                     phase = TRUE,
+                                     phase = FALSE,
                                      initMode = 1,
                                      M1Fun = build_M1(M1_model = 2) # Estimate M (sex-specific)
 )
 
 
 
-# Multi-species model ----
+# 2025 multi-species model ----
 # (cannibalism)
-ceattle_ms <- Rceattle::fit_mod(data_list = mydata_atf,
+ceattle_ms <- Rceattle::fit_mod(data_list = data_2025,
                                 inits = ceattle_ss$estimated_params, # Initial parameters = 0
                                 file = NULL, # Don't save
                                 estimateMode = 0, # Estimate
@@ -80,8 +146,8 @@ ceattle_ms <- Rceattle::fit_mod(data_list = mydata_atf,
                                 M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
 )
 
-# * Rec as random effects
-ceattle_ms_RE <- Rceattle::fit_mod(data_list = mydata_atf,
+# ** Rec as random effects ----
+ceattle_ms_RE <- Rceattle::fit_mod(data_list = data_2025,
                                    inits = ceattle_ms$estimated_params, # Initial parameters = 0
                                    file = NULL, # Don't save
                                    estimateMode = 0, # Estimate
@@ -166,58 +232,11 @@ write.csv(cbind(ss_ll, ss_M_ll[,2], ms_ll[,2]), file = "Results/Final_jnll.csv")
 # abc_list <- lapply(quantities_list, function(x) abc_calc_tmb(x, datlist = dat))
 
 
-# Compare models ----
-# - SAFE model
-SAFE2023 <- read_excel("Data/2023_SAFE_biomass_estimate.xlsx", sheet = 1)
-SAFE2023_comp <- read_excel("Data/2023_SAFE_biomass_estimate.xlsx", sheet = 4)
-SAFE2023_index <- read_excel("Data/2023_SAFE_biomass_estimate.xlsx", sheet = 5)
-SAFE2023_sel <- read_excel("Data/2023_SAFE_biomass_estimate.xlsx", sheet = 6)
-
-SAFE2023_mod <- ceattle_ss
-SAFE2023_mod$quantities$biomass[1,1:length(1977:2023)] <- SAFE2023$Biomass
-SAFE2023_mod$quantities$biomassSSB[1,1:length(1977:2023)] <- SAFE2023$SSB
-SAFE2023_mod$quantities$R[1,1:length(1977:2023)] <- SAFE2023$Recruitment/1000
-SAFE2023_mod$quantities$sel[1,1,1:21,] <- SAFE2023_sel$Survsel_fem
-SAFE2023_mod$quantities$sel[1,2,1:21,] <- SAFE2023_sel$Survsel_mal
-SAFE2023_mod$quantities$sel[2,1,1:21,] <- SAFE2023_sel$Survsel_fem
-SAFE2023_mod$quantities$sel[2,2,1:21,] <- SAFE2023_sel$Survsel_mal
-SAFE2023_mod$quantities$sel[3,1,1:21,] <- SAFE2023_sel$Fishsel_fem
-SAFE2023_mod$quantities$sel[3,2,1:21,] <- SAFE2023_sel$Fishsel_mal
-
-
-SAFE2023_mod$quantities$fsh_bio_hat[1:length(1977:2023)] <- SAFE2023_index$`Pred catch`
-
-# -- Comp data
-comp_temp <- SAFE2023_mod$data_list$comp_data %>%
-  dplyr::select(-paste0("Comp_", 1:117))
-
-comp_temp <- comp_temp %>%
-  dplyr::left_join(SAFE2023_comp %>%
-                     dplyr::select(-Sample_size),
-                   by = c("Fleet_name", "Fleet_code", "Species", "Sex", "Age0_Length1", "Year", "Month")) # Exclude years not in obs
-
-SAFE2023_mod$quantities$comp_hat <- comp_temp %>%
-  dplyr::select(paste0("Comp_", 1:117)) %>%
-  as.matrix()
-
-# -- Index
-SAFE2023_mod$quantities$srv_bio_hat <- SAFE2023_index %>%
-  dplyr::filter(Year %in% SAFE2023_mod$data_list$srv_biom$Year) %>%
-  dplyr::pull(Pred)
-
-
-# - Index model as biomass
-index_mod <- ceattle_ss
-yrs_srv <- ceattle_ss$data_list$srv_biom$Year - 1977 + 1
-index_mod$quantities$biomass[1,] <- 1
-index_mod$quantities$biomass[1,yrs_srv] <- ceattle_ss$data_list$srv_biom$Observation
-
-
 # Plot final ----
 MPcols <- rev(oce::oce.colorsViridis(4))
-line_col <- c("grey60", MPcols[2:4])
-model_list <- list(SAFE2023_mod, ceattle_ss_RE, ceattle_ss_M_RE, ceattle_ms_RE)
-model_names = c("ADMB", "TMB single-spp (fix M)", "TMB single-spp (est M)", "TMB multi-spp")
+line_col <- MPcols[2:4]
+model_list <- list(ceattle_ss_RE, ceattle_ss_M_RE, ceattle_ms_RE)
+model_names = c("TMB single-spp (fix M)", "TMB single-spp (est M)", "TMB multi-spp")
 
 # * Time-series ----
 plot_biomass(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
@@ -226,7 +245,6 @@ plot_recruitment(model_list, model_names = model_names, file = "Results/Figures/
 
 plot_catch(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
 
-source("R/Functions/Plot_b_eatent_1spp function.R", echo=TRUE)
 plot_b_eaten(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
 
 # * Mortality ----
@@ -275,8 +293,6 @@ plot_pearson(ceattle_ss_M_RE, file = "Results/Figures/Diagnostics/Comp/Final_ss_
 plot_pearson(ceattle_ms_RE, file = "Results/Figures/Diagnostics/Comp/Final_ms_")
 
 
-
-
 # * OSA plots ---
 # TMB:::install.contrib("https://github.com/vtrijoulet/OSA_multivariate_dists/archive/main.zip")
 ## devtools::install_github("fishfollower/compResidual/compResidual")
@@ -301,6 +317,7 @@ plot_selectivity(SAFE2023_mod); legend(y = 0.15, x = 12.5, legend = substitute(p
 plot_selectivity(ceattle_ss_RE); legend(y = 0.15, x = 12.5, legend = substitute(paste(bold('CEATTLE single-spp (fix M)'))), bty = "n")
 plot_selectivity(ceattle_ss_M_RE); legend(y = 0.15, x = 12.5, legend = substitute(paste(bold('CEATTLE single-spp (est M)'))), bty = "n")
 plot_selectivity(ceattle_ms_RE); legend(y = 0.15, x = 12.5, legend = substitute(paste(bold('CEATTLE multi-spp'))), bty = "n")
+
 
 # Diagnostics ----
 # * Retrospectives ----

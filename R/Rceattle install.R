@@ -22,4 +22,4 @@ pacman::p_load(dplyr,
                knitr,
                doParallel)
 devtools::install_github("kaskr/TMB_contrib_R/TMBhelper")
-remotes::install_github("grantdadams/Rceattle") # Master branch was the branch previously used for the ATF assessment
+remotes::install_github("grantdadams/Rceattle", ref = "DSEM") # Master branch was the branch previously used for the ATF assessment
