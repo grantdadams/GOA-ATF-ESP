@@ -9,8 +9,12 @@ library(TMB)
 # Load data ----
 mydata_atf <- Rceattle::read_data( file = "Data/GOA_23.1.1_arrowtooth_single_species_1977-2023.xlsx")
 mydata_atf$estDynamics = 0
-mydata_atf$srv_biom$Log_sd <- mydata_atf$srv_biom$Log_sd/mydata_atf$srv_biom$Observation
+mydata_atf$index_data$Log_sd <- mydata_atf$index_data$Log_sd/mydata_atf$index_data$Observation
 mydata_atf$fleet_control$proj_F_prop <- c(1,1,1)
+mydata_atf$fleet_control$Index_sd_prior <- mydata_atf$fleet_control$Survey_sd_prior
+mydata_atf$fleet_control$Estimate_index_sd <- mydata_atf$fleet_control$Estimate_survey_sd
+mydata_atf$fleet_control$Comp_loglike <- 0
+mydata_atf$fleet_control$Age_max_selected <- NA
 
 
 # Single-species models ----
@@ -18,48 +22,47 @@ mydata_atf$fleet_control$proj_F_prop <- c(1,1,1)
 # * Fix M ----
 ceattle_ss <- Rceattle::fit_mod(data_list = mydata_atf,
                                 inits = NULL, # Initial parameters = 0
-                                file = NULL, # Don't save
+                                file = NULL , #"Models/ss", # Don't save
                                 estimateMode = 0, # Estimate
                                 random_rec = FALSE, # No random recruitment
                                 msmMode = 0, # Single species mode
                                 verbose = 1,
                                 phase = TRUE,
-                                initMode = 1)
+                                initMode = 2)
 
 # * Rec as random effects
 ceattle_ss_RE <- Rceattle::fit_mod(data_list = mydata_atf,
                                    inits = ceattle_ss$estimated_params, # Initial parameters = 0
-                                   file = NULL, # Don't save
+                                   file = NULL , #"Models/ss_re", # Don't save
                                    estimateMode = 0, # Estimate
                                    random_rec = TRUE, # Random recruitment
                                    msmMode = 0, # Single species mode
                                    verbose = 1,
-                                   phase = TRUE,
-                                   initMode = 1)
+                                   phase = FALSE,
+                                   initMode = 2)
 
 # * Estimate M ----
 ceattle_ss_M <- Rceattle::fit_mod(data_list = mydata_atf,
                                   inits = NULL, # Initial parameters = 0
-                                  file = NULL, # Don't save
+                                  file = NULL , #"Models/ss_M", # Don't save
                                   estimateMode = 0, # Estimate
-                                  random_rec = FALSE, # No random recruitment
                                   msmMode = 0, # Single species mode
                                   verbose = 1,
                                   phase = TRUE,
-                                  initMode = 1,
+                                  initMode = 2,
                                   M1Fun = build_M1(M1_model = 2) # Estimate M (sex-specific)
 )
 
 # * Rec as random effects
 ceattle_ss_M_RE <- Rceattle::fit_mod(data_list = mydata_atf,
                                      inits = ceattle_ss_M$estimated_params, # Initial parameters = 0
-                                     file = NULL, # Don't save
+                                     file = NULL , #"Models/ss_M_re", # Don't save
                                      estimateMode = 0, # Estimate
                                      random_rec = TRUE, # Random recruitment
                                      msmMode = 0, # Single species mode
                                      verbose = 1,
-                                     phase = TRUE,
-                                     initMode = 1,
+                                     phase = FALSE,
+                                     initMode = 2,
                                      M1Fun = build_M1(M1_model = 2) # Estimate M (sex-specific)
 )
 
@@ -75,7 +78,20 @@ ceattle_ms <- Rceattle::fit_mod(data_list = mydata_atf,
                                 verbose = 1,
                                 phase = FALSE,
                                 suit_endyr = 2015,
-                                initMode = 1,
+                                initMode = 2,
+                                msmMode = 1, # Multi-species model
+                                M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
+)
+
+ceattle_ms <- Rceattle::fit_mod(data_list = mydata_atf,
+                                inits = ceattle_ms$estimated_params, # Initial parameters = 0
+                                file = NULL , #"Models/ms", # Don't save
+                                estimateMode = 0, # Estimate
+                                random_rec = FALSE, # No random recruitment
+                                verbose = 1,
+                                phase = FALSE,
+                                suit_endyr = 2015,
+                                initMode = 3,
                                 msmMode = 1, # Multi-species model
                                 M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
 )
@@ -89,12 +105,25 @@ ceattle_ms_RE <- Rceattle::fit_mod(data_list = mydata_atf,
                                    verbose = 1,
                                    phase = FALSE,
                                    suit_endyr = 2015,
-                                   initMode = 1,
+                                   initMode = 2,
                                    loopnum = 3,
                                    msmMode = 1, # Multi-species model
                                    M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
 )
 
+ceattle_ms_RE <- Rceattle::fit_mod(data_list = mydata_atf,
+                                   inits = ceattle_ms$estimated_params, # Initial parameters = 0
+                                   file = NULL , #"Models/ms_re", # Don't save
+                                   estimateMode = 0, # Estimate
+                                   random_rec = TRUE, # Random recruitment
+                                   verbose = 1,
+                                   phase = FALSE,
+                                   suit_endyr = 2015,
+                                   initMode = 2,
+                                   loopnum = 3,
+                                   msmMode = 1, # Multi-species model
+                                   M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
+)
 
 # Save outputs for ESP ----
 # Biomass eaten due to cannibalism, annual ration across all ages, and M at age 1-5

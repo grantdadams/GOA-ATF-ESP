@@ -7,17 +7,17 @@ library(dplyr)
 library(TMB)
 
 # Load data ----
-# * 2025 ----
+# * 2025 data ----
 data_2025 <- Rceattle::read_data( file = "Data/GOA_25.1.1_arrowtooth_single_species_1977-2024.xlsx")
 data_2025$estDynamics = 0
-data_2025$srv_biom$Log_sd <- data_2025$srv_biom$Log_sd/data_2025$srv_biom$Observation
+data_2025$index_data$Log_sd <- data_2025$index_data$Log_sd/data_2025$index_data$Observation
 data_2025$fleet_control$proj_F_prop <- c(1,1,1)
 
 
-# * 2023 ----
+# * 2023 data ----
 data_2023 <- Rceattle::read_data( file = "Data/GOA_23.1.1_arrowtooth_single_species_1977-2023.xlsx")
 data_2023$estDynamics = 0
-data_2023$srv_biom$Log_sd <- data_2023$srv_biom$Log_sd/data_2023$srv_biom$Observation
+data_2023$index_data$Log_sd <- data_2023$index_data$Log_sd/data_2023$index_data$Observation
 data_2023$fleet_control$proj_F_prop <- c(1,1,1)
 
 
@@ -90,11 +90,8 @@ ceattle_ss <- Rceattle::fit_mod(data_list = data_2025,
                                 phase = FALSE,
                                 initMode = 1)
 
-plot_biomass(list(ceattle_ss, ceattle_ss_2023, ceattle_ss_2023_dw, ceattle_ss_2023_dw_data, ceattle_ss_2023_endyr),
-             model_names = c("2025", "2023", "2023 DW", "2023 DW data", "2023 w/ 2021 age"))
 
-
-# * Fix M random effects ----
+# * Fix M random recruitment ----
 ceattle_ss_RE <- Rceattle::fit_mod(data_list = data_2025,
                                    inits = ceattle_ss$estimated_params, # Initial parameters = 0
                                    file = NULL, # Don't save
@@ -102,7 +99,7 @@ ceattle_ss_RE <- Rceattle::fit_mod(data_list = data_2025,
                                    random_rec = TRUE, # Random recruitment
                                    msmMode = 0, # Single species mode
                                    verbose = 1,
-                                   phase = TRUE,
+                                   phase = FALSE,
                                    initMode = 1)
 
 # * Estimate M ----
@@ -118,7 +115,7 @@ ceattle_ss_M <- Rceattle::fit_mod(data_list = data_2025,
                                   M1Fun = build_M1(M1_model = 2) # Estimate M (sex-specific)
 )
 
-# * Estimate M random effects ----
+# * Estimate M random recruitment ----
 ceattle_ss_M_RE <- Rceattle::fit_mod(data_list = data_2025,
                                      inits = ceattle_ss_M$estimated_params, # Initial parameters = 0
                                      file = NULL, # Don't save
@@ -135,6 +132,7 @@ ceattle_ss_M_RE <- Rceattle::fit_mod(data_list = data_2025,
 
 # 2025 multi-species model ----
 # (cannibalism)
+# * Rec as fixed effects ----
 ceattle_ms <- Rceattle::fit_mod(data_list = data_2025,
                                 inits = ceattle_ss$estimated_params, # Initial parameters = 0
                                 file = NULL, # Don't save
@@ -142,26 +140,41 @@ ceattle_ms <- Rceattle::fit_mod(data_list = data_2025,
                                 random_rec = FALSE, # No random recruitment
                                 verbose = 1,
                                 phase = FALSE,
+                                suit_styr = 1990,
                                 suit_endyr = 2015,
                                 initMode = 1,
                                 msmMode = 1, # Multi-species model
                                 M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
 )
 
-# ** Rec as random effects ----
+# * Rec as random effects ----
 ceattle_ms_RE <- Rceattle::fit_mod(data_list = data_2025,
                                    inits = ceattle_ms$estimated_params, # Initial parameters = 0
-                                   file = NULL, # Don't save
-                                   estimateMode = 0, # Estimate
+                                   file = NULL,       # Don't save
+                                   estimateMode = 0,  # Estimate
                                    random_rec = TRUE, # Random recruitment
                                    verbose = 1,
                                    phase = FALSE,
+                                   suit_styr = 1990,
                                    suit_endyr = 2015,
                                    initMode = 1,
                                    loopnum = 3,
                                    msmMode = 1, # Multi-species model
                                    M1Fun = build_M1(M1_model = 2) # Estimate residual M (sex-specific)
 )
+
+
+# Compare model updates ----
+# * Get old ADMB output ----
+SAFE2023 <- read_excel("Data/2023_SAFE_biomass_estimate.xlsx", sheet = 1)
+SAFE2023_mod <- ceattle_ss_2023
+SAFE2023_mod$quantities$biomass[1,1:(nyrs-2)] <- SAFE2023$Biomass
+SAFE2023_mod$quantities$ssb[1,1:(nyrs-2)] <- SAFE2023$SSB
+SAFE2023_mod$quantities$R[1,1:(nyrs-2)] <- SAFE2023$Recruitment/1000
+
+
+plot_biomass(list(ceattle_ss, SAFE2023_mod, ceattle_ss_2023, ceattle_ss_2023_dw, ceattle_ss_2023_dw_data, ceattle_ss_2023_endyr),
+             model_names = c("2025 Rceattle", "2023 ADMB","2023 Rceattle", "2023 DW Rceattle", "2023 DW no old data Rceattle", "2023 w/ 2021 age Rceattle"))
 
 
 # Save outputs for ESP ----
@@ -174,21 +187,23 @@ weighted_ration <- function(Rceattle, spp = 1, minage = 1, maxage = max(Rceattle
   yrs <- Rceattle$data_list$styr:Rceattle$data_list$endyr
   spp_wt_index <- Rceattle$data_list$pop_wt_index
 
-  wt_f <- Rceattle$data_list$wt %>%
+  wt_f <- Rceattle$data_list$weight %>%
     dplyr::filter(Wt_index == spp_wt_index &
-                    Year %in% yrs &
                     Sex == 1) %>%
+    dplyr::select(-Year) %>%
+    dplyr::cross_join(data.frame(Year = yrs)) %>%
     dplyr::select(paste0("Age", minage:maxage))
 
-  wt_m <- Rceattle$data_list$wt %>%
+  wt_m <- Rceattle$data_list$weight %>%
     dplyr::filter(Wt_index == spp_wt_index &
-                    Year %in% yrs &
-                    Sex == 2) %>%
+                    Sex == 2)  %>%
+    dplyr::select(-Year) %>%
+    dplyr::cross_join(data.frame(Year = yrs)) %>%
     dplyr::select(paste0("Age", minage:maxage))
 
-  females <- apply(Rceattle$quantities$ration[spp,1,minage:maxage,1:length(yrs)] * Rceattle$quantities$NByage[spp,1,minage:maxage,1:length(yrs)] * wt_f, 1, sum)
+  females <- apply(Rceattle$quantities$ration[spp,1,minage:maxage,1:length(yrs)] * Rceattle$quantities$N_at_age[spp,1,minage:maxage,1:length(yrs)] * wt_f, 1, sum)
 
-  males <- apply(Rceattle$quantities$ration[spp,2,minage:maxage,1:length(yrs)] * Rceattle$quantities$NByage[spp,2,minage:maxage,1:length(yrs)] * wt_m, 1, sum)
+  males <- apply(Rceattle$quantities$ration[spp,2,minage:maxage,1:length(yrs)] * Rceattle$quantities$N_at_age[spp,2,minage:maxage,1:length(yrs)] * wt_m, 1, sum)
 
   return(
     males + females
@@ -201,17 +216,17 @@ ESP_data <- data.frame(
   Ration_tonnes = weighted_ration(ceattle_ms_RE),
 
   # - M-at-age/sex
-  M_f_age1 = ceattle_ms_RE$quantities$M[1,1,1,1:nyrs],
-  M_f_age2 = ceattle_ms_RE$quantities$M[1,1,2,1:nyrs],
-  M_f_age3 = ceattle_ms_RE$quantities$M[1,1,3,1:nyrs],
-  M_f_age4 = ceattle_ms_RE$quantities$M[1,1,4,1:nyrs],
-  M_f_age5 = ceattle_ms_RE$quantities$M[1,1,5,1:nyrs],
+  M_f_age1 = ceattle_ms_RE$quantities$M_at_age[1,1,1,1:nyrs],
+  M_f_age2 = ceattle_ms_RE$quantities$M_at_age[1,1,2,1:nyrs],
+  M_f_age3 = ceattle_ms_RE$quantities$M_at_age[1,1,3,1:nyrs],
+  M_f_age4 = ceattle_ms_RE$quantities$M_at_age[1,1,4,1:nyrs],
+  M_f_age5 = ceattle_ms_RE$quantities$M_at_age[1,1,5,1:nyrs],
 
-  M_m_age1 = ceattle_ms_RE$quantities$M[1,2,1,1:nyrs],
-  M_m_age2 = ceattle_ms_RE$quantities$M[1,2,2,1:nyrs],
-  M_m_age3 = ceattle_ms_RE$quantities$M[1,2,3,1:nyrs],
-  M_m_age4 = ceattle_ms_RE$quantities$M[1,2,4,1:nyrs],
-  M_m_age5 = ceattle_ms_RE$quantities$M[1,2,5,1:nyrs]
+  M_m_age1 = ceattle_ms_RE$quantities$M_at_age[1,2,1,1:nyrs],
+  M_m_age2 = ceattle_ms_RE$quantities$M_at_age[1,2,2,1:nyrs],
+  M_m_age3 = ceattle_ms_RE$quantities$M_at_age[1,2,3,1:nyrs],
+  M_m_age4 = ceattle_ms_RE$quantities$M_at_age[1,2,4,1:nyrs],
+  M_m_age5 = ceattle_ms_RE$quantities$M_at_age[1,2,5,1:nyrs]
 )
 write.csv(ESP_data, file = "Results/MS CEATTLE ESP indicators.csv")
 
@@ -250,34 +265,34 @@ plot_catch(model_list, model_names = model_names, file = "Results/Figures/Final_
 plot_b_eaten(model_list, model_names = model_names, file = "Results/Figures/Final_", width = 6, height = 3, line_col = line_col)
 
 # * Mortality ----
-plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, model_names = model_names[2:4], line_col = line_col[2:4])
-plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, age = 2, model_names = model_names[2:4], line_col = line_col[2:4])
-plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, age = 3, model_names = model_names[2:4], line_col = line_col[2:4])
-plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, age = 4, model_names = model_names[2:4], line_col = line_col[2:4])
-plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, age = 5, model_names = model_names[2:4], line_col = line_col[2:4])
-plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, age = 6, model_names = model_names[2:4], line_col = line_col[2:4])
-plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, age = 7, model_names = model_names[2:4], line_col = line_col[2:4])
-plot_m_at_age(model_list[2:4], file = "Results/Figures/Final_", width = 5, height = 5, age = 8, model_names = model_names[2:4], line_col = line_col[2:4])
+plot_m_at_age(model_list, file = "Results/Figures/Final_", width = 5, height = 5, model_names = model_names, line_col = line_col[2:4])
+plot_m_at_age(model_list, file = "Results/Figures/Final_", width = 5, height = 5, age = 2, model_names = model_names, line_col = line_col[2:4])
+plot_m_at_age(model_list, file = "Results/Figures/Final_", width = 5, height = 5, age = 3, model_names = model_names, line_col = line_col[2:4])
+plot_m_at_age(model_list, file = "Results/Figures/Final_", width = 5, height = 5, age = 4, model_names = model_names, line_col = line_col[2:4])
+plot_m_at_age(model_list, file = "Results/Figures/Final_", width = 5, height = 5, age = 5, model_names = model_names, line_col = line_col[2:4])
+plot_m_at_age(model_list, file = "Results/Figures/Final_", width = 5, height = 5, age = 6, model_names = model_names, line_col = line_col[2:4])
+plot_m_at_age(model_list, file = "Results/Figures/Final_", width = 5, height = 5, age = 7, model_names = model_names, line_col = line_col[2:4])
+plot_m_at_age(model_list, file = "Results/Figures/Final_", width = 5, height = 5, age = 8, model_names = model_names, line_col = line_col[2:4])
 
 # - M1
-round(ceattle_ms_RE$quantities$M1[1,1:2,1], 3)
+round(ceattle_ms_RE$quantities$M1_at_age[1,1:2,1,1], 3)
 
 # - Females average M
-round(mean(ceattle_ms_RE$quantities$M[1,1,1,1:length(1977:2023)]), 3)
-round(mean(ceattle_ms_RE$quantities$M[1,1,2,1:length(1977:2023)]), 3)
-round(mean(ceattle_ms_RE$quantities$M[1,1,3,1:length(1977:2023)]), 3)
-round(mean(ceattle_ms_RE$quantities$M[1,1,4,1:length(1977:2023)]), 3)
-round(mean(ceattle_ms_RE$quantities$M[1,1,5,1:length(1977:2023)]), 3)
-round(mean(ceattle_ms_RE$quantities$M[1,1,6,1:length(1977:2023)]), 3)
+round(mean(ceattle_ms_RE$quantities$M_at_age[1,1,1,1:nyrs]), 3)
+round(mean(ceattle_ms_RE$quantities$M_at_age[1,1,2,1:nyrs]), 3)
+round(mean(ceattle_ms_RE$quantities$M_at_age[1,1,3,1:nyrs]), 3)
+round(mean(ceattle_ms_RE$quantities$M_at_age[1,1,4,1:nyrs]), 3)
+round(mean(ceattle_ms_RE$quantities$M_at_age[1,1,5,1:nyrs]), 3)
+round(mean(ceattle_ms_RE$quantities$M_at_age[1,1,6,1:nyrs]), 3)
 
 # - Males average M
-round(mean(ceattle_ms_RE$quantities$M[1,2,1,1:length(1977:2023)]), 3)
-round(mean(ceattle_ms_RE$quantities$M[1,2,2,1:length(1977:2023)]), 3)
-round(mean(ceattle_ms_RE$quantities$M[1,2,3,1:length(1977:2023)]), 3)
-round(mean(ceattle_ms_RE$quantities$M[1,2,4,1:length(1977:2023)]), 3)
-round(mean(ceattle_ms_RE$quantities$M[1,2,5,1:length(1977:2023)]), 3)
-round(mean(ceattle_ms_RE$quantities$M[1,2,6,1:length(1977:2023)]), 3)
-round(mean(ceattle_ms_RE$quantities$M[1,2,7,1:length(1977:2023)]), 3)
+round(mean(ceattle_ms_RE$quantities$M_at_age[1,2,1,1:nyrs]), 3)
+round(mean(ceattle_ms_RE$quantities$M_at_age[1,2,2,1:nyrs]), 3)
+round(mean(ceattle_ms_RE$quantities$M_at_age[1,2,3,1:nyrs]), 3)
+round(mean(ceattle_ms_RE$quantities$M_at_age[1,2,4,1:nyrs]), 3)
+round(mean(ceattle_ms_RE$quantities$M_at_age[1,2,5,1:nyrs]), 3)
+round(mean(ceattle_ms_RE$quantities$M_at_age[1,2,6,1:nyrs]), 3)
+round(mean(ceattle_ms_RE$quantities$M_at_age[1,2,7,1:nyrs]), 3)
 
 
 # Plot diagnostics ----
@@ -315,7 +330,6 @@ plot_logindex(model_list, model_names = model_names, file = "Results/Figures/Dia
 
 
 # * Selectivity ----
-plot_selectivity(SAFE2023_mod); legend(y = 0.15, x = 12.5, legend = substitute(paste(bold('ADMB'))), bty = "n")
 plot_selectivity(ceattle_ss_RE); legend(y = 0.15, x = 12.5, legend = substitute(paste(bold('CEATTLE single-spp (fix M)'))), bty = "n")
 plot_selectivity(ceattle_ss_M_RE); legend(y = 0.15, x = 12.5, legend = substitute(paste(bold('CEATTLE single-spp (est M)'))), bty = "n")
 plot_selectivity(ceattle_ms_RE); legend(y = 0.15, x = 12.5, legend = substitute(paste(bold('CEATTLE multi-spp'))), bty = "n")

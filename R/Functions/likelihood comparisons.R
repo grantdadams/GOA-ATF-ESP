@@ -3,6 +3,12 @@
 # Likelihoods ----
 get_atf_ll <- function(model){
 
+  years <- model$data_list$styr:model$data_list$endyr
+  nyrs <- length(years)
+
+  projyears <- model$data_list$styr:model$data_list$projyr
+  nprojyrs <- length(projyears)
+
   atf_ll <- data.frame( Component = c(
     "Catch",
     "Fishery length",
@@ -11,7 +17,6 @@ get_atf_ll <- function(model){
     "PENALTIES",
     "Recruitment deviations",
     "Slectivity",
-    "F dev",
     "Joint nll",
     "Marginal nll",
     "N parm",
@@ -28,27 +33,26 @@ get_atf_ll <- function(model){
     "ABC"
   ),
   Value = c(
-    model$quantities$jnll_comp[2,3],
     model$quantities$jnll_comp[3,3],
-    model$quantities$jnll_comp[1,1],
-    model$quantities$jnll_comp[3,1],
+    model$quantities$jnll_comp[4,3],
+    model$quantities$jnll_comp[2,1],
+    model$quantities$jnll_comp[4,1],
     NA, # Penalties
     model$quantities$jnll_comp[11,1] + model$quantities$jnll_comp[12,1],
     model$quantities$jnll_comp[5,3],
-    model$quantities$jnll_comp[13,3],
     sum(model$quantities$jnll_comp),
     ifelse(is.null(model$opt$objective),  model$quantities$jnll, model$opt$objective),
     length(model$obj$par),
-    exp(model$estimated_params$ln_srv_q)[1],
-    mean(model$quantities$R[,1:length(1977:2023)]),
-    exp(model$estimated_params$ln_rec_sigma)[1],
+    exp(model$estimated_params$index_ln_q)[1],
+    mean(model$quantities$R[,1:nyrs]),
+    exp(model$estimated_params$R_ln_sd)[1],
     NA,
-    model$quantities$biomass[1,length(1977:2023)],
-    model$quantities$biomassSSB[1,length(1977:2023)],
-    model$quantities$biomass[1,length(1977:2050)],
-    model$quantities$biomass[1,length(1977:2050)] * 0.4,
-    model$quantities$biomassSSB[1,length(1977:2050)],
-    model$quantities$biomassSSB[1,length(1977:2050)] * 0.4,
+    model$quantities$biomass[1,nyrs],
+    model$quantities$ssb[1,nyrs],
+    model$quantities$biomass[1,nprojyrs],
+    model$quantities$biomass[1,nprojyrs] * 0.4,
+    model$quantities$ssb[1,nprojyrs],
+    model$quantities$ssb[1,nprojyrs] * 0.4,
     NA
   )
   )
