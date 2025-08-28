@@ -165,6 +165,10 @@ ceattle_ms_RE <- Rceattle::fit_mod(data_list = data_2025,
 
 
 # Compare model updates ----
+years <- ceattle_ms_RE$data_list$styr:ceattle_ms_RE$data_list$endyr
+nyrs <- length(years)
+
+
 # * Get old ADMB output ----
 SAFE2023 <- read_excel("Data/2023_SAFE_biomass_estimate.xlsx", sheet = 1)
 SAFE2023_mod <- ceattle_ss_2023
@@ -174,13 +178,12 @@ SAFE2023_mod$quantities$R[1,1:(nyrs-2)] <- SAFE2023$Recruitment/1000
 
 
 plot_biomass(list(ceattle_ss, SAFE2023_mod, ceattle_ss_2023, ceattle_ss_2023_dw, ceattle_ss_2023_dw_data, ceattle_ss_2023_endyr),
-             model_names = c("2025 Rceattle", "2023 ADMB","2023 Rceattle", "2023 DW Rceattle", "2023 DW no old data Rceattle", "2023 w/ 2021 age Rceattle"))
+             model_names = c("2025 Rceattle", "2023 ADMB","2023 Rceattle", "2023 DW Rceattle", "2023 DW no old data Rceattle", "2023 w/ 2021 age Rceattle"),
+             file = "Results/Model comparison")
 
 
 # Save outputs for ESP ----
 # Biomass eaten due to cannibalism, annual ration across all ages, and M at age 1-5
-years <- ceattle_ms_RE$data_list$styr:ceattle_ms_RE$data_list$endyr
-nyrs <- length(years)
 
 
 weighted_ration <- function(Rceattle, spp = 1, minage = 1, maxage = max(Rceattle$data_list$nages)){
