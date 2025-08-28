@@ -318,7 +318,6 @@ plot_pearson(ceattle_ms_RE, file = "Results/Figures/Diagnostics/Comp/Final_ms_")
 ## devtools::install_github("fishfollower/compResidual/compResidual")
 library(ggplot2)
 source("R/Functions/Plot osa function.R", echo=TRUE)
-plot_osa_comps(SAFE2023_mod, file = "Results/Figures/Diagnostics/OSA/Final_ADMB_", model_name = "ADMB")
 plot_osa_comps(ceattle_ss_RE, file = "Results/Figures/Diagnostics/OSA/Final_ss_", model_name = "Single-spp fix M")
 plot_osa_comps(ceattle_ss_M_RE, file = "Results/Figures/Diagnostics/OSA/Final_ss_M_", model_name = "Single-spp est M")
 plot_osa_comps(ceattle_ms_RE, file = "Results/Figures/Diagnostics/OSA/Final_ms_", model_name = "Multi-spp")
@@ -355,10 +354,11 @@ ss_M_RE_retro <- retrospective(ceattle_ss_M_RE, peels = 10)
 plot_biomass(ss_M_retro$Rceattle_list, model_names = paste("Mohns =", round(ss_M_retro$mohns[1,2], 2)), file = "Results/Figures/Diagnostics/SS_M_", width = 6, height = 3)
 plot_biomass(ss_M_RE_retro$Rceattle_list, model_names = paste("Mohns =", round(ss_M_RE_retro$mohns[1,2], 2)), file = "Results/Figures/Diagnostics/SS_M_RE_", width = 6, height = 3)
 
-# - M retro plot
+
+# * M retro plot ----
 endyr <- sapply(ss_M_RE_retro$Rceattle_list, function(x) x$data_list$endyr)
-M_fem <- sapply(ss_M_RE_retro$Rceattle_list, function(x) x$quantities$M[1,1,1,1])
-M_males <- sapply(ss_M_RE_retro$Rceattle_list, function(x) x$quantities$M[1,2,1,1])
+M_fem <- sapply(ss_M_RE_retro$Rceattle_list, function(x) x$quantities$M_at_age[1,1,1,1])
+M_males <- sapply(ss_M_RE_retro$Rceattle_list, function(x) x$quantities$M_at_age[1,2,1,1])
 
 plot(x = endyr, y = M_males, ylab = "M", xlab = "Terminal year", ylim = range(c(M_fem, M_males, 0, 0.4)), type = "l", lwd = 2)
 lines(x = endyr, y = M_fem, lwd = 2, col = "blue")
@@ -375,8 +375,8 @@ plot_biomass(ms_RE_retro$Rceattle_list, model_names = paste("Mohns =", round(ms_
 
 # - M retro plot
 endyr <- sapply(ms_RE_retro$Rceattle_list, function(x) x$data_list$endyr)
-M_fem <- sapply(ms_RE_retro$Rceattle_list, function(x) x$quantities$M1[1,1,1])
-M_males <- sapply(ms_RE_retro$Rceattle_list, function(x) x$quantities$M1[1,2,1])
+M_fem <- sapply(ms_RE_retro$Rceattle_list, function(x) x$quantities$M1_at_age[1,1,1])
+M_males <- sapply(ms_RE_retro$Rceattle_list, function(x) x$quantities$M1_at_age[1,2,1])
 
 plot(x = endyr, y = M_males, ylab = "M1", xlab = "Terminal year", ylim = range(c(M_fem, M_males, 0, 0.4)), type = "l", lwd = 2)
 lines(x = endyr, y = M_fem, lwd = 2, col = "blue")
@@ -439,8 +439,8 @@ ll_mat <- matrix(ll_vec, length(m_vec), length(m_vec))
 contour(x = m_vec, y = m_vec, z = ll_mat, xlab = "Male M" , ylab = "Female M")
 
 
-ll_df <- data.frame(F_Mort = sapply(m_profile, function(x) ifelse(is.null(x), NA, x$quantities$M[1,1,1,1])),
-                    M_mort = sapply(m_profile, function(x) ifelse(is.null(x), NA, x$quantities$M[1,2,1,1])),
+ll_df <- data.frame(F_Mort = sapply(m_profile, function(x) ifelse(is.null(x), NA, x$quantities$M_at_age[1,1,1,1])),
+                    M_mort = sapply(m_profile, function(x) ifelse(is.null(x), NA, x$quantities$M_at_age[1,2,1,1])),
                     LL = ll_vec)
 
 p1 <- ggplot(ll_df, aes(y = F_Mort, x = M_mort, z = LL)) +
