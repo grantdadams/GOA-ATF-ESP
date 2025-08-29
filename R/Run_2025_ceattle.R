@@ -1,4 +1,4 @@
-# Code used to fit the 2023 arrowtooth flounder assessment in CEATTLE
+# Code used to fit the 2025 arrowtooth flounder assessment in CEATTLE
 # uses the "dev_srr" version of Rceattle
 
 library(Rceattle)
