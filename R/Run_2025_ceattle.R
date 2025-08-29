@@ -33,7 +33,74 @@ ceattle_ss_2023 <- Rceattle::fit_mod(data_list = data_2023,
                                 verbose = 1,
                                 phase = FALSE,
                                 initMode = 1)
+plot_biomass(list(ceattle_ss_2023),
+             model_names = c("2023 Rceattle"),
+             file = "Results/Model comparison")
 
+ceattle_ss_2025 <- Rceattle::fit_mod(data_list = data_2025,
+                                     inits = NULL, # Initial parameters = 0
+                                     file = NULL, # Don't save
+                                     estimateMode = 0, # Estimate
+                                     random_rec = FALSE, # No random recruitment
+                                     msmMode = 0, # Single species mode
+                                     verbose = 1,
+                                     phase = FALSE,
+                                     initMode = 1)
+plot_biomass(list(ceattle_ss_2023,ceattle_ss_2025),
+             model_names = c("2023 Rceattle","2025 Rceattle"),
+             file = "Results/Model comparison")
+
+# * Fix M random recruitment ----
+ceattle_ss_2025_RE <- Rceattle::fit_mod(data_list = data_2025,
+                                   inits = ceattle_ss_2025$estimated_params, # Initial parameters = 0
+                                   file = NULL, # Don't save
+                                   estimateMode = 0, # Estimate
+                                   random_rec = TRUE, # Random recruitment
+                                   msmMode = 0, # Single species mode
+                                   verbose = 1,
+                                   phase = FALSE,
+                                   initMode = 1)
+
+plot_biomass(list(ceattle_ss_2023,ceattle_ss_2025,ceattle_ss_2025_RE),
+             model_names = c("2023 Rceattle","2025 Rceattle", "2025 Rceattle_RE"),
+             file = "Results/Model comparison")
+
+# * Estimate M ----
+ceattle_ss_2025_M <- Rceattle::fit_mod(data_list = data_2025,
+                                  inits = NULL, # Initial parameters = 0
+                                  file = NULL, # Don't save
+                                  estimateMode = 0, # Estimate
+                                  random_rec = FALSE, # No random recruitment
+                                  msmMode = 0, # Single species mode
+                                  verbose = 1,
+                                  phase = TRUE,
+                                  initMode = 1,
+                                  M1Fun = build_M1(M1_model = 2) # Estimate M (sex-specific)
+)
+
+plot_biomass(list(ceattle_ss_2023,ceattle_ss_2025,ceattle_ss_2025_RE,ceattle_ss_2025_M),
+             model_names = c("2023 Rceattle","2025 Rceattle", "2025 Rceattle_RE","2025 Rceattle_M"),
+             file = "Results/Model comparison")
+
+# * Estimate M random recruitment ----
+ceattle_ss_2025_M_RE <- Rceattle::fit_mod(data_list = data_2025,
+                                     inits = ceattle_ss_2025_M$estimated_params, # Initial parameters = 0
+                                     file = NULL, # Don't save
+                                     estimateMode = 0, # Estimate
+                                     random_rec = TRUE, # Random recruitment
+                                     msmMode = 0, # Single species mode
+                                     verbose = 1,
+                                     phase = FALSE,
+                                     initMode = 1,
+                                     M1Fun = build_M1(M1_model = 2) # Estimate M (sex-specific)
+)
+
+plot_biomass(list(ceattle_ss_2023,ceattle_ss_2025,ceattle_ss_2025_RE,ceattle_ss_2025_M,ceattle_ss_2025_M_RE),
+             model_names = c("2023 Rceattle","2025 Rceattle", "2025 Rceattle_RE","2025 Rceattle_M", "2025 Rceattle_M_RE"),
+             file = "Results/Model comparison")
+
+
+# Other tests below ----
 
 # * Fix data weighting ----
 data_2023$fleet_control$Comp_weights <- 1
