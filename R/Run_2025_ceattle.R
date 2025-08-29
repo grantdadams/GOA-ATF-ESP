@@ -12,7 +12,8 @@ data_2025 <- Rceattle::read_data( file = "Data/GOA_25.1.1_arrowtooth_single_spec
 data_2025$estDynamics = 0
 data_2025$index_data$Log_sd <- data_2025$index_data$Log_sd/data_2025$index_data$Observation
 data_2025$fleet_control$proj_F_prop <- c(1,1,1)
-
+data_2025$fleet_control$Comp_weights <- c(1,1,1)
+data_2025$fleet_control$Comp_loglike <- c(1,1,1)
 
 # * 2023 data ----
 data_2023 <- Rceattle::read_data( file = "Data/GOA_23.1.1_arrowtooth_single_species_1977-2023.xlsx")
@@ -101,7 +102,6 @@ plot_biomass(list(ceattle_ss_2023,ceattle_ss_2025,ceattle_ss_2025_RE,ceattle_ss_
 
 
 # Other tests below ----
-
 # * Fix data weighting ----
 data_2023$fleet_control$Comp_weights <- 1
 ceattle_ss_2023_dw <- Rceattle::fit_mod(data_list = data_2023,
@@ -145,6 +145,8 @@ ceattle_ss_2023_endyr <- Rceattle::fit_mod(data_list = data_2025,
                                 initMode = 1)
 
 # 2025 single-species models ----
+data_2025$fleet_control$Comp_weights <- 1
+
 # * Fix M ----
 data_2025$endyr <- 2025
 ceattle_ss <- Rceattle::fit_mod(data_list = data_2025,
@@ -232,7 +234,7 @@ ceattle_ms_RE <- Rceattle::fit_mod(data_list = data_2025,
 
 
 # Compare model updates ----
-years <- ceattle_ms_RE$data_list$styr:ceattle_ms_RE$data_list$endyr
+years <- ceattle_ss$data_list$styr:ceattle_ss$data_list$endyr
 nyrs <- length(years)
 
 
@@ -244,8 +246,8 @@ SAFE2023_mod$quantities$ssb[1,1:(nyrs-2)] <- SAFE2023$SSB
 SAFE2023_mod$quantities$R[1,1:(nyrs-2)] <- SAFE2023$Recruitment/1000
 
 
-plot_biomass(list(ceattle_ss, SAFE2023_mod, ceattle_ss_2023, ceattle_ss_2023_dw, ceattle_ss_2023_dw_data, ceattle_ss_2023_endyr),
-             model_names = c("2025 Rceattle", "2023 ADMB","2023 Rceattle", "2023 DW Rceattle", "2023 DW no old data Rceattle", "2023 w/ 2021 age Rceattle"),
+plot_biomass(list(ceattle_ss, ceattle_ss_RE, SAFE2023_mod, ceattle_ss_2023, ceattle_ss_2023_dw, ceattle_ss_2023_dw_data, ceattle_ss_2023_endyr),
+             model_names = c("2025 Rceattle", "2025 Rceattle RE", "2023 ADMB","2023 Rceattle", "2023 DW Rceattle", "2023 DW no old data Rceattle", "2023 w/ 2021 age Rceattle"),
              file = "Results/Model comparison")
 
 
