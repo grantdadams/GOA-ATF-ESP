@@ -65,7 +65,7 @@ plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE),
 
 # 3) 2025 Dirichlet multinomial ----
 data_2025$fleet_control$Comp_weights <- c(1,1,1)
-data_2025$fleet_control$Comp_loglike <- c(1,1,1) # DM
+# data_2025$fleet_control$Comp_loglike <- c(1,1,1) # DM
 
 # * Penalized likelihood ----
 ceattle_ss_2025_DM <- Rceattle::fit_mod(data_list = data_2025,
