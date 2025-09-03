@@ -7,18 +7,58 @@ library(dplyr)
 library(TMB)
 
 # Load data ----
-# * 2025 data ----
-data_2025 <- Rceattle::read_data( file = "Data/GOA_25.1.1_arrowtooth_single_species_1977-2024.xlsx")
-data_2025$estDynamics = 0
-data_2025$index_data$Log_sd <- data_2025$index_data$Log_sd/data_2025$index_data$Observation
-data_2025$fleet_control$proj_F_prop <- c(1,1,1)
 
 # * 2023 data ----
 data_2023 <- Rceattle::read_data( file = "Data/GOA_23.1.1_arrowtooth_single_species_1977-2023.xlsx")
 data_2023$estDynamics = 0
 data_2023$index_data$Log_sd <- data_2023$index_data$Log_sd/data_2023$index_data$Observation
-data_2023$fleet_control$proj_F_prop <- c(1,1,1)
+#data_2023$fleet_control$proj_F_prop <- c(1,1,1)
 
+# * 2025 data ----
+# new data
+data_2025 <- Rceattle::read_data( file = "Data/GOA_25.1.1_arrowtooth_single_species_1977-2024_new_data.xlsx")
+data_2025$estDynamics = 0
+data_2025$index_data$Log_sd <- data_2025$index_data$Log_sd/data_2025$index_data$Observation
+
+# new data, cleaned
+data_2025_c <- Rceattle::read_data( file = "Data/GOA_25.1.1_arrowtooth_single_species_1977-2024_new_data_clean.xlsx")
+data_2025_c$estDynamics = 0
+data_2025_c$index_data$Log_sd <- data_2025_c$index_data$Log_sd/data_2025_c$index_data$Observation
+
+# new data, cleaned, new length@age
+data_2025_c_la <- Rceattle::read_data( file = "Data/GOA_25.1.1_arrowtooth_single_species_1977-2024_new_data_clean_LA.xlsx")
+data_2025_c_la$estDynamics = 0
+data_2025_c_la$index_data$Log_sd <- data_2025_c_la$index_data$Log_sd/data_2025_c_la$index_data$Observation
+
+# new data, cleaned, new weight@age
+data_2025_c_wa <- Rceattle::read_data( file = "Data/GOA_25.1.1_arrowtooth_single_species_1977-2024_new_data_clean_WA.xlsx")
+data_2025_c_wa$estDynamics = 0
+data_2025_c_wa$index_data$Log_sd <- data_2025_c_wa$index_data$Log_sd/data_2025_c_wa$index_data$Observation
+
+# new data, cleaned, new age@age empirical
+data_2025_c_ae <- Rceattle::read_data( file = "Data/GOA_25.1.1_arrowtooth_single_species_1977-2024_new_data_clean_AE.xlsx")
+data_2025_c_ae$estDynamics = 0
+data_2025_c_ae$index_data$Log_sd <- data_2025_c_ae$index_data$Log_sd/data_2025_c_ae$index_data$Observation
+
+# new data, cleaned, new age@age candy
+data_2025_c_ac <- Rceattle::read_data( file = "Data/GOA_25.1.1_arrowtooth_single_species_1977-2024_new_data_clean_AC.xlsx")
+data_2025_c_ac$estDynamics = 0
+data_2025_c_ac$index_data$Log_sd <- data_2025_c_ac$index_data$Log_sd/data_2025_c_ac$index_data$Observation
+
+# new data, cleaned, new length@age, new weight@age
+data_2025_c_la_wa <- Rceattle::read_data( file = "Data/GOA_25.1.1_arrowtooth_single_species_1977-2024_new_data_clean_LA_WA.xlsx")
+data_2025_c_la_wa$estDynamics = 0
+data_2025_c_la_wa$index_data$Log_sd <- data_2025_c_la_wa$index_data$Log_sd/data_2025_c_la_wa$index_data$Observation
+
+# new data, cleaned, new length@age, new weight@age, new age@age empirical
+data_2025_c_la_wa_ae <- Rceattle::read_data( file = "Data/GOA_25.1.1_arrowtooth_single_species_1977-2024_new_data_clean_LA_WA_AE.xlsx")
+data_2025_c_la_wa_ae$estDynamics = 0
+data_2025_c_la_wa_ae$index_data$Log_sd <- data_2025_c_la_wa_ae$index_data$Log_sd/data_2025_c_la_wa_ae$index_data$Observation
+
+# new data, cleaned, new length@age, new weight@age, new age@age candy
+data_2025_c_la_wa_ac <- Rceattle::read_data( file = "Data/GOA_25.1.1_arrowtooth_single_species_1977-2024_new_data_clean_LA_WA_AC.xlsx")
+data_2025_c_la_wa_ac$estDynamics = 0
+data_2025_c_la_wa_ac$index_data$Log_sd <- data_2025_c_la_wa_ac$index_data$Log_sd/data_2025_c_la_wa_ac$index_data$Observation
 
 # 1) 2023 single-species models ----
 # - Fit single-species models and no fishing and fix M
@@ -35,8 +75,8 @@ plot_biomass(list(ceattle_ss_2023),
              model_names = c("2023 Rceattle"),
              file = "Results/Model comparison")
 
-# 2) 2025 new data/old weighting ----
-# * Penalized likelihood ----
+# 2) 2025 data updates ----
+# * Penalized likelihood plus new data ----
 ceattle_ss_2025 <- Rceattle::fit_mod(data_list = data_2025,
                                      inits = NULL, # Initial parameters = 0
                                      file = NULL, # Don't save
@@ -47,7 +87,7 @@ ceattle_ss_2025 <- Rceattle::fit_mod(data_list = data_2025,
                                      phase = FALSE,
                                      initMode = 1)
 
-# * Random recruitment ----
+# * Random recruitment plus new data ----
 ceattle_ss_2025_RE <- Rceattle::fit_mod(data_list = data_2025,
                                    inits = ceattle_ss_2025$estimated_params, # Initial parameters = 0
                                    file = NULL, # Don't save
@@ -59,7 +99,183 @@ ceattle_ss_2025_RE <- Rceattle::fit_mod(data_list = data_2025,
                                    initMode = 1)
 
 plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE),
-             model_names = c("2023 Rceattle","2025 Rceattle"),
+             model_names = c("2023 Rceattle","2025 Rceattle New Data"),
+             file = "Results/Model comparison")
+
+# * Random recruitment plus new data cleaned----
+ceattle_ss_2025_RE_c <- Rceattle::fit_mod(data_list = data_2025_c,
+                                        inits = ceattle_ss_2025$estimated_params, # Initial parameters = 0
+                                        file = NULL, # Don't save
+                                        estimateMode = 0, # Estimate
+                                        random_rec = TRUE, # Random recruitment
+                                        msmMode = 0, # Single species mode
+                                        verbose = 1,
+                                        phase = FALSE,
+                                        initMode = 1)
+
+plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c),
+             model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean"),
+             file = "Results/Model comparison")
+
+# * Random recruitment plus new data cleaned plus new length@age ----
+ceattle_ss_2025_RE_c_la <- Rceattle::fit_mod(data_list = data_2025_c_la,
+                                          inits = ceattle_ss_2025$estimated_params, # Initial parameters = 0
+                                          file = NULL, # Don't save
+                                          estimateMode = 0, # Estimate
+                                          random_rec = TRUE, # Random recruitment
+                                          msmMode = 0, # Single species mode
+                                          verbose = 1,
+                                          phase = FALSE,
+                                          initMode = 1)
+
+plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la),
+             model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A"),
+             file = "Results/Model comparison")
+
+# * Random recruitment plus new data cleaned plus new weight@age ----
+ceattle_ss_2025_RE_c_wa <- Rceattle::fit_mod(data_list = data_2025_c_wa,
+                                             inits = ceattle_ss_2025$estimated_params, # Initial parameters = 0
+                                             file = NULL, # Don't save
+                                             estimateMode = 0, # Estimate
+                                             random_rec = TRUE, # Random recruitment
+                                             msmMode = 0, # Single species mode
+                                             verbose = 1,
+                                             phase = FALSE,
+                                             initMode = 1)
+
+plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_wa),
+             model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean W@A"),
+             file = "Results/Model comparison")
+
+# * Random recruitment plus new data cleaned plus new age@age empirical ----
+ceattle_ss_2025_RE_c_ae <- Rceattle::fit_mod(data_list = data_2025_c_ae,
+                                             inits = ceattle_ss_2025$estimated_params, # Initial parameters = 0
+                                             file = NULL, # Don't save
+                                             estimateMode = 0, # Estimate
+                                             random_rec = TRUE, # Random recruitment
+                                             msmMode = 0, # Single species mode
+                                             verbose = 1,
+                                             phase = FALSE,
+                                             initMode = 1)
+
+plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_wa, ceattle_ss_2025_RE_c_ae),
+             model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean W@A", "2025 Rceattle New Data Clean A@AE"),
+             file = "Results/Model comparison")
+
+# * Random recruitment plus new data cleaned plus new age@age candy ----
+ceattle_ss_2025_RE_c_ac <- Rceattle::fit_mod(data_list = data_2025_c_ac,
+                                             inits = ceattle_ss_2025$estimated_params, # Initial parameters = 0
+                                             file = NULL, # Don't save
+                                             estimateMode = 0, # Estimate
+                                             random_rec = TRUE, # Random recruitment
+                                             msmMode = 0, # Single species mode
+                                             verbose = 1,
+                                             phase = FALSE,
+                                             initMode = 1)
+
+plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_wa, ceattle_ss_2025_RE_c_ae, ceattle_ss_2025_RE_c_ac),
+             model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean W@A", "2025 Rceattle New Data Clean A@AE", "2025 Rceattle New Data Clean A@AC"),
+             file = "Results/Model comparison")
+
+# * Random recruitment plus new data cleaned plus new length@age, weight@age ----
+ceattle_ss_2025_RE_c_la_wa <- Rceattle::fit_mod(data_list = data_2025_c_la_wa,
+                                             inits = ceattle_ss_2025$estimated_params, # Initial parameters = 0
+                                             file = NULL, # Don't save
+                                             estimateMode = 0, # Estimate
+                                             random_rec = TRUE, # Random recruitment
+                                             msmMode = 0, # Single species mode
+                                             verbose = 1,
+                                             phase = FALSE,
+                                             initMode = 1)
+
+plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_wa, ceattle_ss_2025_RE_c_ae, ceattle_ss_2025_RE_c_ac, ceattle_ss_2025_RE_c_la_wa),
+             model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean W@A", "2025 Rceattle New Data Clean A@AE", "2025 Rceattle New Data Clean A@AC", "2025 Rceattle New Data Clean L@A W@A"),
+             file = "Results/Model comparison")
+
+# * Random recruitment plus new data cleaned plus new length@age, weight@age, age@age empirical ----
+ceattle_ss_2025_RE_c_la_wa_ae <- Rceattle::fit_mod(data_list = data_2025_c_la_wa_ae,
+                                                inits = ceattle_ss_2025$estimated_params, # Initial parameters = 0
+                                                file = NULL, # Don't save
+                                                estimateMode = 0, # Estimate
+                                                random_rec = TRUE, # Random recruitment
+                                                msmMode = 0, # Single species mode
+                                                verbose = 1,
+                                                phase = FALSE,
+                                                initMode = 1)
+
+plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_wa, ceattle_ss_2025_RE_c_ae, ceattle_ss_2025_RE_c_ac, ceattle_ss_2025_RE_c_la_wa, ceattle_ss_2025_RE_c_la_wa_ae),
+             model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean W@A", "2025 Rceattle New Data Clean A@AE", "2025 Rceattle New Data Clean A@AC", "2025 Rceattle New Data Clean L@A W@A", "2025 Rceattle New Data Clean L@A W@A A@AE"),
+             file = "Results/Model comparison")
+
+# * Random recruitment plus new data cleaned plus new length@age, weight@age, age@age candy ----
+ceattle_ss_2025_RE_c_la_wa_ac <- Rceattle::fit_mod(data_list = data_2025_c_la_wa_ac,
+                                                   inits = ceattle_ss_2025$estimated_params, # Initial parameters = 0
+                                                   file = NULL, # Don't save
+                                                   estimateMode = 0, # Estimate
+                                                   random_rec = TRUE, # Random recruitment
+                                                   msmMode = 0, # Single species mode
+                                                   verbose = 1,
+                                                   phase = FALSE,
+                                                   initMode = 1)
+
+plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_wa, ceattle_ss_2025_RE_c_ae, ceattle_ss_2025_RE_c_ac, ceattle_ss_2025_RE_c_la_wa, ceattle_ss_2025_RE_c_la_wa_ae, ceattle_ss_2025_RE_c_la_wa_ac),
+             model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean W@A", "2025 Rceattle New Data Clean A@AE", "2025 Rceattle New Data Clean A@AC", "2025 Rceattle New Data Clean L@A W@A", "2025 Rceattle New Data Clean L@A W@A A@AE", "2025 Rceattle New Data Clean L@A W@A A@AC"),
+             file = "Results/Model comparison")
+
+
+plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_la_wa, ceattle_ss_2025_RE_c_la_wa_ae),
+             model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean L@A W@A", "2025 Rceattle New Data Clean L@A W@A A@AE"),
+             file = "Results/Model comparison")
+
+# * Return to the previous comp weights ----
+data_2025_c_la_wa_ae$fleet_control$Comp_weights <- c(1,1,0.25)
+ceattle_ss_2025_RE_c_la_wa_ae_dw <- Rceattle::fit_mod(data_list = data_2025_c_la_wa_ae,
+                                                   inits = ceattle_ss_2025$estimated_params, # Initial parameters = 0
+                                                   file = NULL, # Don't save
+                                                   estimateMode = 0, # Estimate
+                                                   random_rec = TRUE, # Random recruitment
+                                                   msmMode = 0, # Single species mode
+                                                   verbose = 1,
+                                                   phase = FALSE,
+                                                   initMode = 1)
+
+plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_la_wa, ceattle_ss_2025_RE_c_la_wa_ae, ceattle_ss_2025_RE_c_la_wa_ae_dw),
+             model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean L@A W@A", "2025 Rceattle New Data Clean L@A W@A A@AE", "2025 Rceattle New Data Clean L@A W@A A@AE DW"),
+             file = "Results/Model comparison")
+
+# * Return to the previous comp weights and estimate M ----
+ceattle_ss_2025_RE_c_la_wa_ae_dw_M <- Rceattle::fit_mod(data_list = data_2025_c_la_wa_ae,
+                                                     inits = ceattle_ss_2025$estimated_params, # Initial parameters = 0
+                                                     file = NULL, # Don't save
+                                                     estimateMode = 0, # Estimate
+                                                     random_rec = TRUE, # Random recruitment
+                                                     msmMode = 0, # Single species mode
+                                                     verbose = 1,
+                                                     phase = FALSE,
+                                                     initMode = 1,
+                                                     M1Fun = build_M1(M1_model = 2) # Estimate M (sex-specific)
+)
+
+plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_la_wa, ceattle_ss_2025_RE_c_la_wa_ae, ceattle_ss_2025_RE_c_la_wa_ae_dw, ceattle_ss_2025_RE_c_la_wa_ae_dw_M),
+             model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean L@A W@A", "2025 Rceattle New Data Clean L@A W@A A@AE", "2025 Rceattle New Data Clean L@A W@A A@AE DW", "2025 Rceattle New Data Clean L@A W@A A@AE DW estM"),
+             file = "Results/Model comparison")
+
+# * Estimate M from final data updates using empirical age@age old DW----
+
+ceattle_ss_2025_RE_c_la_wa_ae_M <- Rceattle::fit_mod(data_list = data_2025_c_la_wa_ae,
+                                                   inits = ceattle_ss_2025_c_la_wa_ae_M$estimated_params, # Initial parameters = 0
+                                                   file = NULL, # Don't save
+                                                   estimateMode = 0, # Estimate
+                                                   random_rec = TRUE, # Random recruitment
+                                                   msmMode = 0, # Single species mode
+                                                   verbose = 1,
+                                                   phase = FALSE,
+                                                   initMode = 1,
+                                                   M1Fun = build_M1(M1_model = 2) # Estimate M (sex-specific)
+                                                   )
+
+plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_la_wa, ceattle_ss_2025_RE_c_la_wa_ae, ceattle_ss_2025_RE_c_la_wa_ae_M),
+             model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean L@A W@A", "2025 Rceattle New Data Clean L@A W@A A@AE", "2025 Rceattle New Data Clean L@A W@A A@AE estM"),
              file = "Results/Model comparison")
 
 
