@@ -218,14 +218,15 @@ ceattle_ss_2025_RE_c_la_wa_ac <- Rceattle::fit_mod(data_list = data_2025_c_la_wa
                                                    phase = FALSE,
                                                    initMode = 1)
 
-plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_wa, ceattle_ss_2025_RE_c_ae, ceattle_ss_2025_RE_c_ac, ceattle_ss_2025_RE_c_la_wa, ceattle_ss_2025_RE_c_la_wa_ae, ceattle_ss_2025_RE_c_la_wa_ac),
-             model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean W@A", "2025 Rceattle New Data Clean A@AE", "2025 Rceattle New Data Clean A@AC", "2025 Rceattle New Data Clean L@A W@A", "2025 Rceattle New Data Clean L@A W@A A@AE", "2025 Rceattle New Data Clean L@A W@A A@AC"),
-             file = "Results/Model comparison")
+model_list <-  list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_wa, ceattle_ss_2025_RE_c_ae, ceattle_ss_2025_RE_c_ac, ceattle_ss_2025_RE_c_la_wa, ceattle_ss_2025_RE_c_la_wa_ae, ceattle_ss_2025_RE_c_la_wa_ac)
+model_names <- c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean W@A", "2025 Rceattle New Data Clean A@AE", "2025 Rceattle New Data Clean A@AC", "2025 Rceattle New Data Clean L@A W@A", "2025 Rceattle New Data Clean L@A W@A A@AE", "2025 Rceattle New Data Clean L@A W@A A@AC")
 
 
-plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_la_wa, ceattle_ss_2025_RE_c_la_wa_ae),
-             model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean L@A W@A", "2025 Rceattle New Data Clean L@A W@A A@AE"),
-             file = "Results/Model comparison")
+plot_biomass(model_list, model_names = model_names, file = "Results/Model comparison", legend.pos = "bottomleft")
+plot_ssb(model_list, model_names = model_names, file = "Results/Model comparison", legend.pos = "bottomleft")
+plot_recruitment(model_list, model_names = model_names, file = "Results/Model comparison")
+plot_index(model_list, model_names = model_names, file = "Results/Model comparison")
+
 
 # * Return to the previous comp weights ----
 data_2025_c_la_wa_ae$fleet_control$Comp_weights <- c(1,1,0.25)
@@ -277,6 +278,7 @@ ceattle_ss_2025_RE_c_la_wa_ae_M <- Rceattle::fit_mod(data_list = data_2025_c_la_
 plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_la_wa, ceattle_ss_2025_RE_c_la_wa_ae, ceattle_ss_2025_RE_c_la_wa_ae_M),
              model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean L@A W@A", "2025 Rceattle New Data Clean L@A W@A A@AE", "2025 Rceattle New Data Clean L@A W@A A@AE estM"),
              file = "Results/Model comparison")
+
 
 
 # 3) 2025 Dirichlet multinomial ----
