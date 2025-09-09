@@ -71,6 +71,13 @@ ceattle_ss_2023 <- Rceattle::fit_mod(data_list = data_2023,
                                 verbose = 1,
                                 phase = FALSE,
                                 initMode = 1)
+# - Diagnostic plots
+plot_logindex(ceattle_ss_2023)
+plot_indexresidual(ceattle_ss_2023)
+plot_comp(ceattle_ss_2023)
+plot_catch(ceattle_ss_2023)
+dev.off()
+
 plot_biomass(list(ceattle_ss_2023),
              model_names = c("2023 Rceattle"),
              file = "Results/Model comparison")
@@ -98,6 +105,13 @@ ceattle_ss_2025_RE <- Rceattle::fit_mod(data_list = data_2025,
                                    phase = FALSE,
                                    initMode = 1)
 
+# - Diagnostic plots
+plot_logindex(ceattle_ss_2025_RE)
+plot_indexresidual(ceattle_ss_2025_RE)
+plot_comp(ceattle_ss_2025_RE)
+plot_catch(ceattle_ss_2025_RE)
+dev.off()
+
 plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE),
              model_names = c("2023 Rceattle","2025 Rceattle New Data"),
              file = "Results/Model comparison")
@@ -113,8 +127,16 @@ ceattle_ss_2025_RE_c <- Rceattle::fit_mod(data_list = data_2025_c,
                                         phase = FALSE,
                                         initMode = 1)
 
+# - Diagnostic plots
+plot_logindex(ceattle_ss_2025_RE_c)
+plot_indexresidual(ceattle_ss_2025_RE_c)
+plot_comp(ceattle_ss_2025_RE_c)
+plot_catch(ceattle_ss_2025_RE_c)
+dev.off()
+
 plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c),
              model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean"),
+             legend.pos = "bottomleft",
              file = "Results/Model comparison")
 
 # * Random recruitment plus new data cleaned plus new length@age ----
@@ -128,8 +150,16 @@ ceattle_ss_2025_RE_c_la <- Rceattle::fit_mod(data_list = data_2025_c_la,
                                           phase = FALSE,
                                           initMode = 1)
 
+# - Diagnostic plots
+plot_logindex(ceattle_ss_2025_RE_c_la)
+plot_indexresidual(ceattle_ss_2025_RE_c_la)
+plot_comp(ceattle_ss_2025_RE_c_la)
+plot_catch(ceattle_ss_2025_RE_c_la)
+dev.off()
+
 plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la),
              model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A"),
+             legend.pos = "bottomleft",
              file = "Results/Model comparison")
 
 # * Random recruitment plus new data cleaned plus new weight@age ----
@@ -143,8 +173,16 @@ ceattle_ss_2025_RE_c_wa <- Rceattle::fit_mod(data_list = data_2025_c_wa,
                                              phase = FALSE,
                                              initMode = 1)
 
+# - Diagnostic plots
+plot_logindex(ceattle_ss_2025_RE_c_wa)
+plot_indexresidual(ceattle_ss_2025_RE_c_wa)
+plot_comp(ceattle_ss_2025_RE_c_wa)
+plot_catch(ceattle_ss_2025_RE_c_wa)
+dev.off()
+
 plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_wa),
              model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean W@A"),
+             legend.pos = "bottomleft",
              file = "Results/Model comparison")
 
 # * Random recruitment plus new data cleaned plus new age@age empirical ----
@@ -158,8 +196,16 @@ ceattle_ss_2025_RE_c_ae <- Rceattle::fit_mod(data_list = data_2025_c_ae,
                                              phase = FALSE,
                                              initMode = 1)
 
+# - Diagnostic plots
+plot_logindex(ceattle_ss_2025_RE_c_ae)
+plot_indexresidual(ceattle_ss_2025_RE_c_ae)
+plot_comp(ceattle_ss_2025_RE_c_ae)
+plot_catch(ceattle_ss_2025_RE_c_ae)
+dev.off()
+
 plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_wa, ceattle_ss_2025_RE_c_ae),
              model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean W@A", "2025 Rceattle New Data Clean A@AE"),
+             legend.pos = "bottomleft",
              file = "Results/Model comparison")
 
 # * Random recruitment plus new data cleaned plus new age@age candy ----
@@ -173,8 +219,16 @@ ceattle_ss_2025_RE_c_ac <- Rceattle::fit_mod(data_list = data_2025_c_ac,
                                              phase = FALSE,
                                              initMode = 1)
 
+# - Diagnostic plots
+plot_logindex(ceattle_ss_2025_RE_c_ac)
+plot_indexresidual(ceattle_ss_2025_RE_c_ac)
+plot_comp(ceattle_ss_2025_RE_c_ac)
+plot_catch(ceattle_ss_2025_RE_c_ac)
+dev.off()
+
 plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_wa, ceattle_ss_2025_RE_c_ae, ceattle_ss_2025_RE_c_ac),
              model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean W@A", "2025 Rceattle New Data Clean A@AE", "2025 Rceattle New Data Clean A@AC"),
+             legend.pos = "bottomleft",
              file = "Results/Model comparison")
 
 # * Random recruitment plus new data cleaned plus new length@age, weight@age ----
@@ -188,8 +242,16 @@ ceattle_ss_2025_RE_c_la_wa <- Rceattle::fit_mod(data_list = data_2025_c_la_wa,
                                              phase = FALSE,
                                              initMode = 1)
 
+# - Diagnostic plots
+plot_logindex(ceattle_ss_2025_RE_c_la_wa)
+plot_indexresidual(ceattle_ss_2025_RE_c_la_wa)
+plot_comp(ceattle_ss_2025_RE_c_la_wa)
+plot_catch(ceattle_ss_2025_RE_c_la_wa)
+dev.off()
+
 plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_wa, ceattle_ss_2025_RE_c_ae, ceattle_ss_2025_RE_c_ac, ceattle_ss_2025_RE_c_la_wa),
              model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean W@A", "2025 Rceattle New Data Clean A@AE", "2025 Rceattle New Data Clean A@AC", "2025 Rceattle New Data Clean L@A W@A"),
+             legend.pos = "bottomleft",
              file = "Results/Model comparison")
 
 # * Random recruitment plus new data cleaned plus new length@age, weight@age, age@age empirical ----
@@ -208,9 +270,11 @@ plot_logindex(ceattle_ss_2025_RE_c_la_wa_ae)
 plot_indexresidual(ceattle_ss_2025_RE_c_la_wa_ae)
 plot_comp(ceattle_ss_2025_RE_c_la_wa_ae)
 plot_catch(ceattle_ss_2025_RE_c_la_wa_ae)
+dev.off()
 
 plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_wa, ceattle_ss_2025_RE_c_ae, ceattle_ss_2025_RE_c_ac, ceattle_ss_2025_RE_c_la_wa, ceattle_ss_2025_RE_c_la_wa_ae),
              model_names = c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean W@A", "2025 Rceattle New Data Clean A@AE", "2025 Rceattle New Data Clean A@AC", "2025 Rceattle New Data Clean L@A W@A", "2025 Rceattle New Data Clean L@A W@A A@AE"),
+             legend.pos = "bottomleft",
              file = "Results/Model comparison")
 
 # * Random recruitment plus new data cleaned plus new length@age, weight@age, age@age candy ----
@@ -224,9 +288,15 @@ ceattle_ss_2025_RE_c_la_wa_ac <- Rceattle::fit_mod(data_list = data_2025_c_la_wa
                                                    phase = FALSE,
                                                    initMode = 1)
 
+# - Diagnostic plots
+plot_logindex(ceattle_ss_2025_RE_c_la_wa_ac)
+plot_indexresidual(ceattle_ss_2025_RE_c_la_wa_ac)
+plot_comp(ceattle_ss_2025_RE_c_la_wa_ac)
+plot_catch(ceattle_ss_2025_RE_c_la_wa_ac)
+dev.off()
+
 model_list <-  list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_wa, ceattle_ss_2025_RE_c_ae, ceattle_ss_2025_RE_c_ac, ceattle_ss_2025_RE_c_la_wa, ceattle_ss_2025_RE_c_la_wa_ae, ceattle_ss_2025_RE_c_la_wa_ac)
 model_names <- c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean W@A", "2025 Rceattle New Data Clean A@AE", "2025 Rceattle New Data Clean A@AC", "2025 Rceattle New Data Clean L@A W@A", "2025 Rceattle New Data Clean L@A W@A A@AE", "2025 Rceattle New Data Clean L@A W@A A@AC")
-
 
 plot_biomass(model_list, model_names = model_names, file = "Results/Model comparison", legend.pos = "bottomleft")
 plot_ssb(model_list, model_names = model_names, file = "Results/Model comparison", legend.pos = "bottomleft")
