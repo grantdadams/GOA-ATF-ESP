@@ -266,10 +266,10 @@ ceattle_ss_2025_RE_c_la_wa_ae <- Rceattle::fit_mod(data_list = data_2025_c_la_wa
                                                 initMode = 1)
 
 # - Diagnostic plots
-plot_logindex(ceattle_ss_2025_RE_c_la_wa_ae)
-plot_indexresidual(ceattle_ss_2025_RE_c_la_wa_ae)
-plot_comp(ceattle_ss_2025_RE_c_la_wa_ae)
-plot_catch(ceattle_ss_2025_RE_c_la_wa_ae)
+plot_logindex(ceattle_ss_2025_RE_c_la_wa_ae, file = "Results/Final data model")
+plot_indexresidual(ceattle_ss_2025_RE_c_la_wa_ae, file = "Results/Final data model")
+plot_comp(ceattle_ss_2025_RE_c_la_wa_ae, file = "Results/Final data model")
+plot_catch(ceattle_ss_2025_RE_c_la_wa_ae, file = "Results/Final data model")
 dev.off()
 
 plot_biomass(list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_wa, ceattle_ss_2025_RE_c_ae, ceattle_ss_2025_RE_c_ac, ceattle_ss_2025_RE_c_la_wa, ceattle_ss_2025_RE_c_la_wa_ae),
