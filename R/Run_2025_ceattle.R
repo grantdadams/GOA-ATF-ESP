@@ -309,7 +309,7 @@ ssb <- t(do.call("rbind", lapply(model_list, function(x) x$quantities$ssb[1,])))
 rec <- t(do.call("rbind", lapply(model_list, function(x) x$quantities$R[1,])))
 colnames(rec) <- colnames(ssb) <- colnames(biomass) <- model_names
 library(writexl)
-writexl::write_xlsx(list(biomass = as.data.frame(biomass), ssb = as.data.frame(ssb), rec = as.data.frame(rec)), path = "Results/Model bridging outputs.xlsxs")
+writexl::write_xlsx(list(biomass = as.data.frame(biomass), ssb = as.data.frame(ssb), rec = as.data.frame(rec)), path = "Results/Model bridging outputs.xlss")
 
 
 # - Plots
