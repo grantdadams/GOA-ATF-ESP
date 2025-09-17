@@ -74,7 +74,8 @@ ceattle_ss_2023 <- Rceattle::fit_mod(data_list = data_2023,
 # - Diagnostic plots
 plot_logindex(ceattle_ss_2023)
 plot_indexresidual(ceattle_ss_2023)
-plot_comp(ceattle_ss_2023)
+dev.off()
+#plot_comp(ceattle_ss_2023)
 plot_catch(ceattle_ss_2023)
 dev.off()
 
@@ -108,7 +109,8 @@ ceattle_ss_2025_RE <- Rceattle::fit_mod(data_list = data_2025,
 # - Diagnostic plots
 plot_logindex(ceattle_ss_2025_RE)
 plot_indexresidual(ceattle_ss_2025_RE)
-plot_comp(ceattle_ss_2025_RE)
+dev.off()
+#plot_comp(ceattle_ss_2025_RE)
 plot_catch(ceattle_ss_2025_RE)
 dev.off()
 
@@ -130,7 +132,8 @@ ceattle_ss_2025_RE_c <- Rceattle::fit_mod(data_list = data_2025_c,
 # - Diagnostic plots
 plot_logindex(ceattle_ss_2025_RE_c)
 plot_indexresidual(ceattle_ss_2025_RE_c)
-plot_comp(ceattle_ss_2025_RE_c)
+dev.off()
+#plot_comp(ceattle_ss_2025_RE_c)
 plot_catch(ceattle_ss_2025_RE_c)
 dev.off()
 
@@ -153,7 +156,8 @@ ceattle_ss_2025_RE_c_la <- Rceattle::fit_mod(data_list = data_2025_c_la,
 # - Diagnostic plots
 plot_logindex(ceattle_ss_2025_RE_c_la)
 plot_indexresidual(ceattle_ss_2025_RE_c_la)
-plot_comp(ceattle_ss_2025_RE_c_la)
+dev.off()
+#plot_comp(ceattle_ss_2025_RE_c_la)
 plot_catch(ceattle_ss_2025_RE_c_la)
 dev.off()
 
@@ -176,7 +180,8 @@ ceattle_ss_2025_RE_c_wa <- Rceattle::fit_mod(data_list = data_2025_c_wa,
 # - Diagnostic plots
 plot_logindex(ceattle_ss_2025_RE_c_wa)
 plot_indexresidual(ceattle_ss_2025_RE_c_wa)
-plot_comp(ceattle_ss_2025_RE_c_wa)
+dev.off()
+#plot_comp(ceattle_ss_2025_RE_c_wa)
 plot_catch(ceattle_ss_2025_RE_c_wa)
 dev.off()
 
@@ -199,7 +204,7 @@ ceattle_ss_2025_RE_c_ae <- Rceattle::fit_mod(data_list = data_2025_c_ae,
 # - Diagnostic plots
 plot_logindex(ceattle_ss_2025_RE_c_ae)
 plot_indexresidual(ceattle_ss_2025_RE_c_ae)
-plot_comp(ceattle_ss_2025_RE_c_ae)
+#plot_comp(ceattle_ss_2025_RE_c_ae)
 plot_catch(ceattle_ss_2025_RE_c_ae)
 dev.off()
 
@@ -222,7 +227,7 @@ ceattle_ss_2025_RE_c_ac <- Rceattle::fit_mod(data_list = data_2025_c_ac,
 # - Diagnostic plots
 plot_logindex(ceattle_ss_2025_RE_c_ac)
 plot_indexresidual(ceattle_ss_2025_RE_c_ac)
-plot_comp(ceattle_ss_2025_RE_c_ac)
+#plot_comp(ceattle_ss_2025_RE_c_ac)
 plot_catch(ceattle_ss_2025_RE_c_ac)
 dev.off()
 
@@ -245,7 +250,7 @@ ceattle_ss_2025_RE_c_la_wa <- Rceattle::fit_mod(data_list = data_2025_c_la_wa,
 # - Diagnostic plots
 plot_logindex(ceattle_ss_2025_RE_c_la_wa)
 plot_indexresidual(ceattle_ss_2025_RE_c_la_wa)
-plot_comp(ceattle_ss_2025_RE_c_la_wa)
+#plot_comp(ceattle_ss_2025_RE_c_la_wa)
 plot_catch(ceattle_ss_2025_RE_c_la_wa)
 dev.off()
 
@@ -268,7 +273,7 @@ ceattle_ss_2025_RE_c_la_wa_ae <- Rceattle::fit_mod(data_list = data_2025_c_la_wa
 # - Diagnostic plots
 plot_logindex(ceattle_ss_2025_RE_c_la_wa_ae, file = "Results/Final data model")
 plot_indexresidual(ceattle_ss_2025_RE_c_la_wa_ae, file = "Results/Final data model")
-plot_comp(ceattle_ss_2025_RE_c_la_wa_ae, file = "Results/Final data model")
+#plot_comp(ceattle_ss_2025_RE_c_la_wa_ae, file = "Results/Final data model")
 plot_catch(ceattle_ss_2025_RE_c_la_wa_ae, file = "Results/Final data model")
 dev.off()
 
@@ -291,13 +296,23 @@ ceattle_ss_2025_RE_c_la_wa_ac <- Rceattle::fit_mod(data_list = data_2025_c_la_wa
 # - Diagnostic plots
 plot_logindex(ceattle_ss_2025_RE_c_la_wa_ac)
 plot_indexresidual(ceattle_ss_2025_RE_c_la_wa_ac)
-plot_comp(ceattle_ss_2025_RE_c_la_wa_ac)
+#plot_comp(ceattle_ss_2025_RE_c_la_wa_ac)
 plot_catch(ceattle_ss_2025_RE_c_la_wa_ac)
 dev.off()
 
 model_list <-  list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_wa, ceattle_ss_2025_RE_c_ae, ceattle_ss_2025_RE_c_ac, ceattle_ss_2025_RE_c_la_wa, ceattle_ss_2025_RE_c_la_wa_ae, ceattle_ss_2025_RE_c_la_wa_ac)
 model_names <- c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean W@A", "2025 Rceattle New Data Clean A@AE", "2025 Rceattle New Data Clean A@AC", "2025 Rceattle New Data Clean L@A W@A", "2025 Rceattle New Data Clean L@A W@A A@AE", "2025 Rceattle New Data Clean L@A W@A A@AC")
 
+# - Save model quantities
+biomass <- t(do.call("rbind", lapply(model_list, function(x) x$quantities$biomass[1,])))
+ssb <- t(do.call("rbind", lapply(model_list, function(x) x$quantities$ssb[1,])))
+rec <- t(do.call("rbind", lapply(model_list, function(x) x$quantities$R[1,])))
+colnames(rec) <- colnames(ssb) <- colnames(biomass) <- model_names
+library(writexl)
+writexl::write_xlsx(list(biomass = as.data.frame(biomass), ssb = as.data.frame(ssb), rec = as.data.frame(rec)), path = "Results/Model bridging outputs.xlsxs")
+
+
+# - Plots
 plot_biomass(model_list, model_names = model_names, file = "Results/Model comparison", legend.pos = "bottomleft")
 plot_ssb(model_list, model_names = model_names, file = "Results/Model comparison", legend.pos = "bottomleft")
 plot_recruitment(model_list, model_names = model_names, file = "Results/Model comparison")
