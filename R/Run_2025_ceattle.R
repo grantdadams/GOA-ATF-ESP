@@ -305,11 +305,17 @@ model_names <- c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Da
 
 # - Save model quantities
 biomass <- t(do.call("rbind", lapply(model_list, function(x) x$quantities$biomass[1,])))
+biomass <- cbind(data_2025$styr:data_2025$projyr, biomass)
+
 ssb <- t(do.call("rbind", lapply(model_list, function(x) x$quantities$ssb[1,])))
+ssb <- cbind(data_2025$styr:data_2025$projyr, ssb)
+
 rec <- t(do.call("rbind", lapply(model_list, function(x) x$quantities$R[1,])))
-colnames(rec) <- colnames(ssb) <- colnames(biomass) <- model_names
+rec <- cbind(data_2025$styr:data_2025$projyr, rec)
+
+colnames(rec) <- colnames(ssb) <- colnames(biomass) <- c("year", model_names)
 library(writexl)
-writexl::write_xlsx(list(biomass = as.data.frame(biomass), ssb = as.data.frame(ssb), rec = as.data.frame(rec)), path = "Results/Model bridging outputs.xlss")
+writexl::write_xlsx(list(biomass = as.data.frame(biomass), ssb = as.data.frame(ssb), rec = as.data.frame(rec)), path = "Results/Model bridging outputs.xlsx")
 
 
 # - Plots
