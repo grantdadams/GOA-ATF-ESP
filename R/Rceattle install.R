@@ -24,5 +24,5 @@ pacman::p_load(dplyr,
 devtools::install_github("kaskr/TMB_contrib_R/TMBhelper")
 
 # NOTE: both DSEM and dev-name-change will work, but use the dev-name-change for now
-remotes::install_github("grantdadams/Rceattle", ref = "DSEM") # Master branch was the branch previously used for the ATF assessment
-remotes::install_github("grantdadams/Rceattle", ref = "dev-name-change") # Master branch was the branch previously used for the ATF assessment
+remotes::install_github("grantdadams/Rceattle", ref = "dev-DSEM") # Master branch was the branch previously used for the ATF assessment
+remotes::install_github("grantdadams/Rceattle") # Master branch was the branch previously used for the ATF assessment
