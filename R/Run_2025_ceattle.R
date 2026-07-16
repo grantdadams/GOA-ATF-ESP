@@ -301,7 +301,7 @@ plot_catch(ceattle_ss_2025_RE_c_la_wa_ac)
 dev.off()
 
 model_list <-  list(ceattle_ss_2023, ceattle_ss_2025_RE, ceattle_ss_2025_RE_c, ceattle_ss_2025_RE_c_la, ceattle_ss_2025_RE_c_wa, ceattle_ss_2025_RE_c_ae, ceattle_ss_2025_RE_c_ac, ceattle_ss_2025_RE_c_la_wa, ceattle_ss_2025_RE_c_la_wa_ae, ceattle_ss_2025_RE_c_la_wa_ac)
-model_names <- c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean W@A", "2025 Rceattle New Data Clean A@AE", "2025 Rceattle New Data Clean A@AC", "2025 Rceattle New Data Clean L@A W@A", "2025 Rceattle New Data Clean L@A W@A A@AE", "2025 Rceattle New Data Clean L@A W@A A@AC")
+model_names <- c("2023 Rceattle","2025 Rceattle New Data", "2025 Rceattle New Data Clean", "2025 Rceattle New Data Clean L@A", "2025 Rceattle New Data Clean W@A", "2025 Rceattle New Data Clean A@AE", "2025 Rceattle New Data Clean A@AC", "2025 Rceattle New Data Clean L@A W@A", "2025 Rceattle New Data Clean L@A W@A A@AE (Model 25.0)", "2025 Rceattle New Data Clean L@A W@A A@AC")
 
 # - Save model quantities
 biomass <- t(do.call("rbind", lapply(model_list, function(x) x$quantities$biomass[1,])))
@@ -321,7 +321,7 @@ writexl::write_xlsx(list(biomass = as.data.frame(biomass), ssb = as.data.frame(s
 # - Plots
 plot_biomass(model_list, model_names = model_names, file = "Results/Model comparison", legend.pos = "bottomleft")
 plot_ssb(model_list, model_names = model_names, file = "Results/Model comparison", legend.pos = "bottomleft")
-plot_recruitment(model_list, model_names = model_names, file = "Results/Model comparison")
+plot_recruitment(model_list, model_names = model_names, file = "Results/Model comparison", legend.pos = "topright")
 plot_index(model_list, model_names = model_names, file = "Results/Model comparison")
 
 
