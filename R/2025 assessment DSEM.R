@@ -14,7 +14,10 @@ data_2025_c_la_wa_ae$index_data$Log_sd <- data_2025_c_la_wa_ae$index_data$Log_sd
 
 # Add DSEM environmental data to Rceattle data object ----
 # @kalei - TODO
-env_data <- data.frame(Year = 1977:2025, EnvIndex1 = rnorm(49), EnvIndex2 = rnorm(49), EnvIndex3 = rnorm(49)) # Random (will be commented out)
+env_data <- data.frame(Year = 1977:2025,
+                       EnvIndex1 = rnorm(49),
+                       EnvIndex2 = rnorm(49),
+                       EnvIndex3 = rnorm(49)) # Random (will be commented out)
 
 data_2025_c_la_wa_ae$env_data <- data_2025_c_la_wa_ae$env_data %>%
   dplyr::full_join(env_data)
@@ -23,7 +26,7 @@ plot_data(data_2025_c_la_wa_ae)
 
 
 # SEM ----
-#FIXME Need to update
+#FIXME @kalei Need to update
 
 # * IID sem ----
 # - For model comparison
@@ -65,7 +68,7 @@ atf_iid_mod <- Rceattle::fit_mod(data_list = data_2025_c_la_wa_ae,
                                   dsem = build_DSEM(
                                     sem = atf_iid_sem,
                                     family = "fixed",
-                                    sigmaR_prior_sd = 0.5 # Need sd prior to get it to converge
+                                    sigmaR_prior_sd = 0.5 # Need sd prior to get it to converge if missing a lot of years of env data (assumes mean as initial value)
                                   ),
                                   msmMode = 0, # Single species mode
                                   initMode = 1,
@@ -83,7 +86,7 @@ atf_dsem_mod <- Rceattle::fit_mod(data_list = data_2025_c_la_wa_ae,
                                   dsem = build_DSEM(
                                     sem = atf_sem,
                                     family = "fixed",
-                                    sigmaR_prior_sd = 0.5 # Need sd prior to get it to converge
+                                    sigmaR_prior_sd = 0.5 # Need sd prior to get it to converge if missing a lot of years of env data (assumes mean as initial value)
                                   ),
                                   msmMode = 0, # Single species mode
                                   initMode = 1,

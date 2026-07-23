@@ -1,6 +1,7 @@
 # Update the 2025 dataset with new data
-# See vignette
+# See vignette fro creating a data-set from scratch
 # https://grantdadams.github.io/Rceattle/articles/data-without-excel.html
+# https://github.com/grantdadams/Rceattle/blob/main/examples/Build_data_without_excel.R
 
 library(Rceattle)
 library(dplyr)
@@ -22,6 +23,7 @@ catch_data <- data_2025_c_la_wa_ae$catch_data[1,]
 catch_data$Year <- data_2025_c_la_wa_ae$endyr
 catch_data$Catch <- 99999 # @kalei add in 2026 catch
 data_2025_c_la_wa_ae$catch_data <- rbind(data_2025_c_la_wa_ae$catch_data , catch_data)
+
 
 # * Comp ----
 # - Age
