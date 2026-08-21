@@ -1,6 +1,7 @@
 
 # https://grantdadams.github.io/Rceattle/articles/model-diagnostics.html
 library(Rceattle)
+library(ggplot2)
 
 # Data ----
 data_2025_c_la_wa_ae <- Rceattle::read_data( file = "Data/GOA_25.1.1_arrowtooth_single_species_1977-2024_new_data_clean_LA_WA_AE.xlsx")
@@ -58,18 +59,18 @@ hist(log(mod_25_0_jitters$nll - min(mod_25_0_jitters$nll)),
      xlab = "log(NLL - min NLL)")
 
 # Overlay biomass trajectories — tight overlap indicates a stable optimum
-plot_biomass(mod_25_0_jitters$Rceattle_list)
+plot_biomass(mod_25_0_jitters$Rceattle_list) + theme(legend.position="none")
 
 
 # * Self-test ----
-mod_25_0_sims <- self_test(mod_25_0, nsim = 100)
+mod_25_0_sims <- self_test(mod_25_0, nsim = 100, start = "estimated")
 
 # Number of simulations that converged (non-converged runs are dropped)
 length(mod_25_0_sims)
 
 # Overlay biomass / SSB trajectories across simulations — the original fit's
 # trajectory should sit inside the spread of the refits.
-plot_biomass(c(list(mod_25_0), mod_25_0_sims), model_names = c("fit", names(mod_25_0_sims)))
+plot_biomass(c(mod_25_0_sims, list(mod_25_0)), line_col = c(rep("grey", 100), 1)) + theme(legend.position="none")
 
 # * Likelihood profiles ----
 # sigmaR
