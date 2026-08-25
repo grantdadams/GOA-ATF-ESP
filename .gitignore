@@ -3,3 +3,15 @@
 .RData
 .Ruserdata
 .Rproj.user
+
+# SPM projection artifacts: the ADMB binary is platform-specific and rebuilt by
+# build_spm(); spm_detail.csv is ~15 MB of simulation draws. The input files
+# (goa_atf.dat, spm.dat, tacpar.dat) and the summary tables are kept.
+2026/projections/**/spm
+2026/projections/spm
+2026/projections/**/spm_detail.csv
+2026/projections/**/*.tmp
+2026/projections/**/*.out
+2026/projections/**/*.log
+2026/projections/**/Input_Log.rep
+2026/projections/**/elasticity.csv
