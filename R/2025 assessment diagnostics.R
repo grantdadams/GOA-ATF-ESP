@@ -70,7 +70,12 @@ length(mod_25_0_sims)
 
 # Overlay biomass / SSB trajectories across simulations — the original fit's
 # trajectory should sit inside the spread of the refits.
-plot_biomass(c(mod_25_0_sims, list(mod_25_0)), line_col = c(rep("grey", 100), 1)) + theme(legend.position="none")
+# One grey per simulation KEPT, not per simulation requested: self_test() drops
+# the ones that did not converge, so a hardcoded 100 leaves the black `1` past
+# the end of the list and draws the fit itself grey, among the greys.
+plot_biomass(c(mod_25_0_sims, list(mod_25_0)),
+             line_col = c(rep("grey", length(mod_25_0_sims)), 1)) +
+  theme(legend.position = "none")
 
 # * Likelihood profiles ----
 # sigmaR

@@ -77,21 +77,8 @@ plot_pearson <-
           # Loop around fleets with comp data
           for (j in 1:nsrv) {
 
-            #  Plot name
-            if (i == 2) {
-              filename <- paste0(file, paste0(c("_comps_pearson_residual_", "_comps_pearson_residual_"), "fleet_code_",srv[j] )[comp_type + 1], ".png")
-              png(
-                file = filename ,
-                width = 7,# 169 / 25.4,
-                height = 6.5,# 150 / 25.4,
-
-                units = "in",
-                res = 300
-              )
-            }
-
-
-            # Extract comps
+            # Extract comps. Done before the device is opened so a fleet with
+            # nothing to draw does not leave an empty PNG behind.
             srv_ind <- which(comp_data$Fleet_code == srv[j] & comp_data$Age0_Length1 == comp_type)
             comp_tmp <- comp_data[srv_ind,]
             comp_hat_tmp <- comp_hat[srv_ind, ]
@@ -107,6 +94,32 @@ plot_pearson <-
             comp_tmp$comp_hat <- comp_hat_tmp$comp
             comp_tmp <- comp_tmp[which(comp_tmp$comp > 0),]
             comp_tmp <- comp_tmp[which(comp_tmp$comp_hat > 0),]
+
+            # A fleet with no fitted composition has no residual to draw: an
+            # 'Off' fleet, or one whose rows all carry Sample_size 0. CEATTLE
+            # returns an empty comp_hat for such a row (before 5.9.0 it returned
+            # the predicted proportions, which drew as a perfect fit for data
+            # that were never collected), so skip the panel rather than plotting
+            # one with no finite axis limits.
+            if (nrow(comp_tmp) == 0) {
+              message("plot_pearson: no composition residuals for fleet ",
+                      srv[j], " (", c("age", "length")[comp_type + 1],
+                      "); skipping.")
+              next
+            }
+
+            #  Plot name
+            if (i == 2) {
+              filename <- paste0(file, paste0(c("_comps_pearson_residual_", "_comps_pearson_residual_"), "fleet_code_",srv[j] )[comp_type + 1], ".png")
+              png(
+                file = filename ,
+                width = 7,# 169 / 25.4,
+                height = 6.5,# 150 / 25.4,
+
+                units = "in",
+                res = 300
+              )
+            }
 
             # Calculate pearson
             comp_tmp$pearson <- (comp_tmp$comp - comp_tmp$comp_hat) / sqrt( ( comp_tmp$comp_hat * (1 - comp_tmp$comp_hat)) / comp_tmp$Sample_size)
