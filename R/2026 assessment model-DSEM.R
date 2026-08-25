@@ -2,24 +2,20 @@
 remotes::install_version("dsem", version = "3.0.0") # Need this version
 remotes::install_github("grantdadams/Rceattle@dsem-v5-integration")
 library(Rceattle) # dsem-v5-integration
+library(dsem)
 library(dplyr)
+library(ggplot2)
 
 # Data ----
 data_2026 <- Rceattle::read_data( file = "2026/data/GOA_arrowtooth_2026.xlsx")
 data_2026$estDynamics = 0
 data_2026$index_data$Log_sd <- data_2026$index_data$Log_sd/data_2026$index_data$Observation
 
-# Add DSEM environmental data to Rceattle data object ----
-# @kalei - TODO
-env_data <- data.frame(Year = 1977:2025,
-                       EnvIndex1 = rnorm(49),
-                       EnvIndex2 = rnorm(49),
-                       EnvIndex3 = rnorm(49)) # Random (will be commented out)
-
-data_2026$env_data <- data_2026$env_data %>%
-  dplyr::full_join(env_data)
-
 plot_data(data_2026)
+
+# Model ----
+
+
 
 
 # SEM ----
