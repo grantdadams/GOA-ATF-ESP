@@ -18,11 +18,11 @@ data_2025_c_la_wa_ae$endyr <- 2026 # New end year
 
 
 # * Catch ----
-# - Add in 2026
-catch_data <- data_2025_c_la_wa_ae$catch_data[1,]
-catch_data$Year <- data_2025_c_la_wa_ae$endyr
-catch_data$Catch <- 99999 # @kalei add in 2026 catch
-data_2025_c_la_wa_ae$catch_data <- rbind(data_2025_c_la_wa_ae$catch_data , catch_data)
+# - Add in 2026, only useful if you are updating the final year
+catch_data <- data_2025_c_la_wa_ae$catch_data[1,] #copies final row from previous year
+catch_data$Year <- data_2025_c_la_wa_ae$endyr #updates the year to endyr
+catch_data$Catch <- 99999 # add this from akfin pulls
+data_2025_c_la_wa_ae$catch_data <- rbind(data_2025_c_la_wa_ae$catch_data , catch_data) #rbinds a final 2026 row
 
 
 # * Comp ----
