@@ -7,12 +7,17 @@ library(dplyr)
 library(ggplot2)
 
 # Data ----
+data_2025 <- Rceattle::read_data( file = "2026/data/GOA_arrowtooth_2025.xlsx")
+data_2025$estDynamics = 0
+data_2025$index_data$Log_sd <- data_2025$index_data$Log_sd/data_2025$index_data$Observation
+
 data_2026 <- Rceattle::read_data( file = "2026/data/GOA_arrowtooth_2026.xlsx")
 data_2026$estDynamics = 0
 data_2026$index_data$Log_sd <- data_2026$index_data$Log_sd/data_2026$index_data$Observation
 # Return to previous comp weights
 #data_2026$fleet_control$Comp_weights <- c(1,1,0.25)
 
+plot_data(data_2025)
 plot_data(data_2026)
 
 # SAFE (Hindcast) Model ----
@@ -20,6 +25,16 @@ plot_data(data_2026)
 # Alternative 25.1 = Model 25.0 but estimates sex-specific M instead of fixing M.
 
 # * Fit Base 25.0 -----
+# Fixed M Old
+mod_25_old <- Rceattle::fit_mod(data_list = data_2025,
+                              estimateMode = 0, # Estimate
+                              random_rec = TRUE, # Random recruitment
+                              msmMode = 0, # Single species mode
+                              fit_control = fit_control(
+                                verbose = 1,
+                                phase = TRUE),
+                              initMode = 1)
+
 # Fixed M
 mod_25_0 <- Rceattle::fit_mod(data_list = data_2026,
                               estimateMode = 0, # Estimate
@@ -206,10 +221,14 @@ prof_M_sex_25_1 <- profile(
 plot_selectivity(mod_25_0)
 plot_selectivity(mod_25_1)
 plot_f(list(mod_25_0,mod_25_1), model_names = c("Model 25.0", "Model 25.1"), file = "Results/Model comparison", legend.pos = "bottomleft")
-plot_biomass(list(mod_25_0,mod_25_1), model_names = c("Model 25.0", "Model 25.1"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison", legend.pos = "bottomleft")
-plot_ssb(list(mod_25_0,mod_25_1), model_names = c("Model 25.0", "Model 25.1"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison", legend.pos = "bottomleft")
-plot_recruitment(list(mod_25_0,mod_25_1), model_names = c("Model 25.0", "Model 25.1"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison")
-plot_index(list(mod_25_0,mod_25_1), model_names = c("Model 25.0", "Model 25.1"), file = "Results/Model comparison")
+
+plot_biomass(list(mod_25_old,mod_25_0,mod_25_1,mod_25_ms), model_names = c("Model 25.0","Model 25.0 New Data", "Model 25.1", "Model 25.1.MS"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison", legend.pos = "bottomleft")
+
+plot_ssb(list(mod_25_old,mod_25_0,mod_25_1,mod_25_ms), model_names = c("Model 25.0","Model 25.0 New Data", "Model 25.1", "Model 25.1.MS"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison", legend.pos = "bottomleft")
+
+plot_recruitment(list(mod_25_old,mod_25_0,mod_25_1,mod_25_ms), model_names = c("Model 25.0","Model 25.0 New Data", "Model 25.1", "Model 25.1.MS"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison")
+
+plot_index(list(mod_25_old,mod_25_0,mod_25_1,mod_25_ms), model_names = c("Model 25.0","Model 25.0 New Data", "Model 25.1", "Model 25.1.MS"), file = "Results/Model comparison")
 
 mod_25_0$sdrep
 mod_25_0$opt
@@ -239,14 +258,34 @@ mod_25_1 <- Rceattle::fit_mod(data_list = data_2026,
                                 verbose = 1,
                                 phase = TRUE),
                               initMode = 1,
-                              M1Fun = build_M1(M1_model = 2))
+                              M1Fun = build_M1(M1_model = 2)) # Estimate M (sex-specific)
 
 
 
 # Research Models ----
+
 # Cannibalism Multispecies Model
+mod_25_ms <- Rceattle::fit_mod(data_list = data_2026,
+                              estimateMode = 0, # Estimate
+                              random_rec = TRUE, # Random recruitment
+                              msmMode = 1, # Multi species mode
+                              fit_control = fit_control(
+                                verbose = 1,
+                                phase = TRUE),
+                              initMode = 1,
+                              M1Fun = build_M1(M1_model = 2)) # Estimate residual M (sex-specific)
 
+# Research Diagnostics ----
+# * Summaries -----
+summary(mod_25_ms)
+convergence_diagnostics(mod_25_ms)
 
+# * Plots ----
+plot_index(mod_25_ms)
+plot_index(mod_25_ms, log = TRUE)
+plot_indexresidual(mod_25_ms)
+plot_comp(mod_25_ms)
+plot_catch(mod_25_ms)
 
 # ESP-DSEM Integrated Model ----
 
