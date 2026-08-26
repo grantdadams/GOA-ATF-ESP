@@ -17,6 +17,11 @@ data_2026$index_data$Log_sd <- data_2026$index_data$Log_sd/data_2026$index_data$
 # Return to previous comp weights
 #data_2026$fleet_control$Comp_weights <- c(1,1,0.25)
 
+# Excel is storing the environmental columns as text, so they arrive as
+# character and TMB rejects them. Turn them back into numbers.
+env_columns <- setdiff(names(data_2026$env_data), "Year")
+data_2026$env_data[env_columns] <- lapply(data_2026$env_data[env_columns], as.numeric)
+
 plot_data(data_2025)
 plot_data(data_2026)
 
@@ -55,6 +60,20 @@ mod_25_1 <- Rceattle::fit_mod(data_list = data_2026,
                               fit_control = fit_control(
                                 verbose = 1,
                                 phase = TRUE),
+                              initMode = 1,
+                              M1Fun = build_M1(M1_model = 2))
+
+
+# * Fit Alternative 25.2 -----
+# - Cannibalism
+mod_25_2 <- Rceattle::fit_mod(data_list = data_2026,
+                              inits = mod_25_1$estimated_params,
+                              estimateMode = 0, # Estimate
+                              random_rec = TRUE, # Random recruitment
+                              msmMode = 1, # Multi species mode
+                              fit_control = fit_control(
+                                verbose = 1,
+                                phase = FALSE), # No phasing
                               initMode = 1,
                               M1Fun = build_M1(M1_model = 2))
 
