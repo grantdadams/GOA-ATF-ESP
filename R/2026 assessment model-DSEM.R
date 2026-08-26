@@ -39,6 +39,8 @@ mod_25_old <- Rceattle::fit_mod(data_list = data_2025,
                                 verbose = 1,
                                 phase = TRUE),
                               initMode = 1)
+summary(mod_25_old)
+convergence_diagnostics(mod_25_old)
 
 # Fixed M
 mod_25_0 <- Rceattle::fit_mod(data_list = data_2026,
@@ -50,6 +52,12 @@ mod_25_0 <- Rceattle::fit_mod(data_list = data_2026,
                                 phase = TRUE),
                               initMode = 1)
 
+summary(mod_25_0)
+convergence_diagnostics(mod_25_0)
+plot_selectivity(mod_25_0)
+plot_comp(mod_25_0)
+plot_index(mod_25_0)
+plot_biomass(mod_25_0)
 
 # * Fit Alternative 25.1 -----
 # Estimate sex-specific M
@@ -63,6 +71,8 @@ mod_25_1 <- Rceattle::fit_mod(data_list = data_2026,
                               initMode = 1,
                               M1Fun = build_M1(M1_model = 2))
 
+summary(mod_25_1)
+convergence_diagnostics(mod_25_1)
 
 # * Fit Alternative 25.2 -----
 # - Cannibalism
@@ -77,19 +87,31 @@ mod_25_2 <- Rceattle::fit_mod(data_list = data_2026,
                               initMode = 1,
                               M1Fun = build_M1(M1_model = 2))
 
+summary(mod_25_2)
+convergence_diagnostics(mod_25_2)
+
+# Make a list of models to run for rest of script
+mod_list<-c("mod_25_old","mod_25_0","mod_25_1","mod_25_2")
+
 
 # Diagnostics ----
-# * M25.0 Diags ----
+i<-1 #indexing for models
+
 # * Summaries -----
-summary(mod_25_0)
-convergence_diagnostics(mod_25_0)
+summary(paste(mod_list[i]))
+convergence_diagnostics(paste(mod_list[i]))
+
 
 # * Plots ----
 plot_index(mod_25_0)
 plot_index(mod_25_0, log = TRUE)
 plot_indexresidual(mod_25_0)
+plot_biomass(mod_25_0, incl_proj = TRUE, add_ci = TRUE)
+plot_ssb(mod_25_0, incl_proj = TRUE, add_ci = TRUE)
+plot_recruitment(mod_25_0, incl_proj = TRUE, add_ci = TRUE)
 plot_comp(mod_25_0)
 plot_catch(mod_25_0)
+plot_selectivity(mod_25_0)
 
 # * OSAs ----
 osa_25_0 <- osa_residuals(mod_25_0)
@@ -100,6 +122,7 @@ osa_diagnostics(osa_25_0)
 
 # Q-Q plot (with SDNR / tail annotation) + residual-by-year
 plot(osa_25_0)
+#, file = "Results/Model comparison")
 
 # * Retrospectives ----
 mod_25_0_retro <- retrospective(Rceattle = mod_25_0, peels = 5)
@@ -237,17 +260,26 @@ prof_M_sex_25_1 <- profile(
 
 # Model Comparison ----
 
+plot_f(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), file = "Results/Model comparison", legend.pos = "bottomleft")
+
+plot_biomass(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison", legend.pos = "bottomleft")
+
+plot_ssb(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison", legend.pos = "bottomleft")
+
+plot_recruitment(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison")
+
+plot_index(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), file = "Results/Model comparison")
+
+plot_selectivity(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), file = "Results/Model comparison")
+
+plot_mortality(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), file = "Results/Model comparison")
+
+plot_selectivity(list(mod_25_0,mod_25_1), model_names = c("Model 25.0 Fix M New Data", "Model 25.1 Estimate M"), file = "Results/Model comparison")
+
 plot_selectivity(mod_25_0)
-plot_selectivity(mod_25_1)
-plot_f(list(mod_25_0,mod_25_1), model_names = c("Model 25.0", "Model 25.1"), file = "Results/Model comparison", legend.pos = "bottomleft")
-
-plot_biomass(list(mod_25_old,mod_25_0,mod_25_1,mod_25_ms), model_names = c("Model 25.0","Model 25.0 New Data", "Model 25.1", "Model 25.1.MS"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison", legend.pos = "bottomleft")
-
-plot_ssb(list(mod_25_old,mod_25_0,mod_25_1,mod_25_ms), model_names = c("Model 25.0","Model 25.0 New Data", "Model 25.1", "Model 25.1.MS"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison", legend.pos = "bottomleft")
-
-plot_recruitment(list(mod_25_old,mod_25_0,mod_25_1,mod_25_ms), model_names = c("Model 25.0","Model 25.0 New Data", "Model 25.1", "Model 25.1.MS"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison")
-
-plot_index(list(mod_25_old,mod_25_0,mod_25_1,mod_25_ms), model_names = c("Model 25.0","Model 25.0 New Data", "Model 25.1", "Model 25.1.MS"), file = "Results/Model comparison")
+plot_m_at_age(mod_25_2)
+plot_comp(mod_25_0)
+plot_comp(mod_25_1)
 
 mod_25_0$sdrep
 mod_25_0$opt
