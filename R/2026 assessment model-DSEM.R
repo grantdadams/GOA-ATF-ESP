@@ -254,24 +254,78 @@ ggsave(filename = here::here(yr, "results", mod_list[i],"sigr_profile.png"),
        plot = sigr_prof, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 # @Grant for this one
-plot_profile(prof_sigmaR, xlab = "sigmaR")
+# The components, not just the total: the total says how well the data
+# determine sigmaR, not whether the data sources agree about it.
+sigr_comp_prof <- plot_profile(prof_sigmaR, xlab = "sigmaR")
+
+ggsave(filename = here::here(yr, "results", mod_list[i],"sigr_profile_components.png"),
+       plot = sigr_comp_prof, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 
-# 2-D cross-profile: M1 across sex
+# * M1, whole array scaled ----
+# M1_model = 2 is sex-specific and age-invariant, so every age of a sex shares
+# one parameter. Profile every cell, or the ages left out stay estimated and the
+# fit is not held at the grid value.
+#
+# joint = "multiply" puts them all on ONE grid: the array is scaled as a whole
+# and keeps its male/female ratio. 1 is the fitted model. Without it the slots
+# would cross, which is 7^k fits.
+SP <- 1
+M_slots <- unlist(
+  lapply(seq_len(mod$data_list$nsex[SP]), function(sx)
+    lapply(seq_len(mod$data_list$nages[SP]), function(a) c(SP, sx, a))),
+  recursive = FALSE)
+
+prof_M <- profile(
+  fitted = mod,
+  param  = "M1",
+  slots  = M_slots,
+  values = list(seq(0.6, 1.4, by = 0.05)),
+  joint  = "multiply"
+)
+prof_M                                  # does the grid bracket the minimum?
+
+M_prof <- plot_profile(prof_M, xlab = "M multiplier (1 = fitted)")
+
+ggsave(filename = here::here(yr, "results", mod_list[i],"M_profile_components.png"),
+       plot = M_prof, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
+
+# One component routinely dwarfs the rest and flattens the others onto the axis,
+# so where THEY prefer M cannot be read. "scaled" puts every curve on 0 to 1 so
+# the minima can be compared. It drops magnitude, hence the higher minfraction.
+M_prof_scaled <- plot_profile(prof_M, relative = "scaled", minfraction = 0.02,
+                              xlab = "M multiplier (1 = fitted)")
+
+ggsave(filename = here::here(yr, "results", mod_list[i],"M_profile_scaled.png"),
+       plot = M_prof_scaled, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
+
+# Which fleet pulls where, at the total's minimum.
+M_comps <- profile_components(prof_M, minfraction = 0.01)
+readr::write_csv(M_comps, here::here(yr, "results", mod_list[i],"M_profile_components.csv"))
+
+
+# 2-D cross-profile: female against male M1. A surface, not a line -- 49 fits --
+# so plot_profile() refuses it by design; read it off $grid and $nll.
 prof_M_sex <- profile(
   fitted = mod,
   param    = "M1",
-  slots    = list(c(1, 1, 1), c(1, 2, 1)),  # males and females
+  slots    = list(c(1, 1, 1), c(1, 2, 1)),  # females and males
   values   = list(seq(0.10, 0.40, by = 0.05),
                   seq(0.10, 0.40, by = 0.05))
 )
 
-M_prof <- plot(prof_M_sex$grid$slot_1,
-     prof_M_sex$nll - min(prof_M_sex$nll, na.rm = TRUE),
-     type = "l", xlab = "M", ylab = "dNLL")
+M_sex_surface <- ggplot(
+  data.frame(female = prof_M_sex$grid$slot_1,
+             male   = prof_M_sex$grid$slot_2,
+             dNLL   = prof_M_sex$nll - min(prof_M_sex$nll, na.rm = TRUE)),
+  aes(x = female, y = male, z = dNLL, fill = dNLL)) +
+  geom_tile() +
+  geom_contour(colour = "white") +
+  labs(x = "Female M", y = "Male M", fill = "dNLL") +
+  theme_bw()
 
-ggsave(filename = here::here(yr, "results", mod_list[i],"sigr.png"),
-       plot = sigr, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
+ggsave(filename = here::here(yr, "results", mod_list[i],"M_sex_surface.png"),
+       plot = M_sex_surface, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 # Model Comparison ----
 
