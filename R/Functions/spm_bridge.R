@@ -242,21 +242,30 @@ spm_program <- function() {
   if (.Platform$OS.type == "windows") "spm.exe" else "spm"
 }
 
-# Find the SPM program: in the run folder if it is there, otherwise in the
-# projections folder above it.
-find_spm <- function(dir) {
-  here  <- file.path(dir, spm_program())
-  above <- file.path(dirname(dir), spm_program())
-  if (file.exists(here)) return(here)
-  if (file.exists(above)) return(above)
+# Where the SPM program is: in the run folder if it is there, otherwise in the
+# projections folder above it. NULL if neither has one.
+find_spm <- function(dir, must_work = TRUE) {
+  for (path in c(file.path(dir, spm_program()),
+                 file.path(dirname(dir), spm_program()))) {
+    if (file.exists(path)) return(path)
+  }
+  if (!must_work) return(NULL)
   stop("No ", spm_program(), " in ", dir, " or ", dirname(dir),
-       ". On a Mac or Linux run build_spm() to compile it; on Windows copy in ",
-       "a prebuilt spm.exe.")
+       ". On Windows put a prebuilt spm.exe in one of them; on Mac or Linux ",
+       "run build_spm() to compile one.")
 }
 
+# Is an SPM program already in place for this run folder?
+have_spm <- function(dir) !is.null(find_spm(dir, must_work = FALSE))
+
 # Compile SPM from the template in the spmR package. Needs ADMB installed.
-# Only has to be done once. On Windows, use a prebuilt spm.exe instead.
+# Only has to be done once, and only on Mac or Linux -- ADMB is not usually
+# installed on the Windows machines here, so use a prebuilt spm.exe instead.
 build_spm <- function(dir) {
+  if (.Platform$OS.type == "windows") {
+    stop("build_spm() compiles with ADMB, which is not set up here on Windows. ",
+         "Put a prebuilt spm.exe in ", dir, " (or in the folder above it) instead.")
+  }
   template <- system.file("admb", "spm.tpl", package = "spmR")
   if (template == "") {
     stop("Install spmR first: remotes::install_github('afsc-assessments/spmR')")
@@ -285,7 +294,13 @@ build_spm <- function(dir) {
 # Run SPM on the input files in `dir` and return one row per simulation, year
 # and harvest scenario.
 run_spm <- function(dir) {
-  program <- normalizePath(find_spm(dir))
+  program <- find_spm(dir)
+  # Call it by a short relative path from inside the run folder rather than an
+  # absolute one, so a repository sitting under a folder with a space in its
+  # name cannot trip the shell on either platform.
+  in_run_folder <- normalizePath(dirname(program)) == normalizePath(dir)
+  program <- file.path(if (in_run_folder) "." else "..", spm_program())
+
   here <- setwd(dir)
   on.exit(setwd(here))
 
