@@ -19,8 +19,8 @@ data_2025$index_data$Log_sd <- data_2025$index_data$Log_sd/data_2025$index_data$
 
 # Excel is storing the environmental columns as text, so they arrive as
 # character and TMB rejects them. Turn them back into numbers.
-env_columns <- setdiff(names(data_2026$env_data), "Year")
-data_2026$env_data[env_columns] <- lapply(data_2026$env_data[env_columns], as.numeric)
+env_columns <- setdiff(names(data_2025$env_data), "Year")
+data_2025$env_data[env_columns] <- lapply(data_2025$env_data[env_columns], as.numeric)
 
 # 2026 Model
 data_2026 <- Rceattle::read_data( file = "2026/data/GOA_arrowtooth_2026.xlsx")
@@ -161,7 +161,7 @@ ggsave(filename = here::here(yr, "results", mod_list[i],"recruitment_retro.png")
 
 
 # * Jitters ----
-mod_jitters <- jitter(Rceattle = mod, njitter = 5, phase = TRUE)
+mod_jitters <- jitter(Rceattle = mod, njitter = 100, phase = TRUE)
 
 # Histogram of NLL differences relative to the best run
 jitter_data <- data.frame(
@@ -186,7 +186,7 @@ ggsave(filename = here::here(yr, "results", mod_list[i],"biomass_jitters.png"),
        plot = biomass_jitters, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 # * Self-test ----
-mod_sims <- self_test(mod, nsim = 3, start = "estimated")
+mod_sims <- self_test(mod, nsim = 100, start = "estimated")
 
 # Number of simulations that converged (non-converged runs are dropped)
 num_sims<- length(mod_sims)
@@ -234,21 +234,37 @@ plot(prof_M_sex$grid$slot_1,
 
 # Model Comparison ----
 
-plot_f(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), file = "Results/Model comparison", legend.pos = "bottomleft")
+f_compare <- plot_f(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"))
 
-plot_biomass(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison", legend.pos = "bottomleft")
+ggsave(filename = here::here(yr, "results","f_comparison.png"),
+       plot = f_compare, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
-plot_ssb(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison", legend.pos = "bottomleft")
+biom_compare <- plot_biomass(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), incl_proj = TRUE, add_ci = TRUE)
 
-plot_recruitment(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison")
+ggsave(filename = here::here(yr, "results", "biomass_comparison.png"),
+       plot = biom_compare, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
-plot_index(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), file = "Results/Model comparison")
+ssb_compare <- plot_ssb(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison", legend.pos = "bottomleft")
 
-plot_selectivity(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), file = "Results/Model comparison")
+ggsave(filename = here::here(yr, "results", "ssb_comparison.png"),
+       plot = ssb_compare, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
-plot_mortality(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), file = "Results/Model comparison")
+recruit_compare <- plot_recruitment(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison")
 
-plot_selectivity(list(mod_25_0,mod_25_1), model_names = c("Model 25.0 Fix M New Data", "Model 25.1 Estimate M"), file = "Results/Model comparison")
+ggsave(filename = here::here(yr, "results", "recruit_comparison.png"),
+       plot = recruit_compare, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
+
+index_compare <- plot_index(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), file = "Results/Model comparison")
+
+ggsave(filename = here::here(yr, "results", "index_comparison.png"),
+       plot = index_compare, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
+
+sel_compare <- plot_selectivity(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), file = "Results/Model comparison")
+
+ggsave(filename = here::here(yr, "results", "selectivity_comparison.png"),
+       plot = sel_compare, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
+
+#plot_mortality(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), file = "Results/Model comparison")
 
 # Projection Models ----
 
