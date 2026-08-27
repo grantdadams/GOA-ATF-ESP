@@ -54,8 +54,7 @@ ofl_last_year <- 142832
 # run_spm() picks up whichever of the two is there, so nothing below changes.
 #if (!file.exists(file.path(out_dir, spm_program()))) build_spm(out_dir)
 
-
-# Project both models ----------------------------------------------------
+  # Project both models ----------------------------------------------------
 
 for (model in names(fits)) {
   fit <- fits[[model]]
@@ -63,6 +62,10 @@ for (model in names(fits)) {
   # Each model gets its own folder of SPM inputs and outputs.
   run_dir <- file.path(out_dir, paste0("mod_", sub(".", "_", model, fixed = TRUE)))
   dir.create(run_dir, showWarnings = FALSE, recursive = TRUE)
+
+  # On Windows the prebuilt spm.exe is already in the folder, so this does
+  # nothing. On Mac or Linux it compiles one the first time, which needs ADMB.
+  if (!have_spm(run_dir)) build_spm(run_dir)
 
   write_spm_inputs(fit, run_dir, fixed_catch = specified_catch)
   detail <- run_spm(run_dir)
