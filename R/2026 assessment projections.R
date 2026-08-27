@@ -52,7 +52,7 @@ ofl_last_year <- 142832
 # The SPM program. On a Mac or Linux this compiles it, which needs ADMB
 # installed; on Windows put a prebuilt spm.exe in 2026/projections/ instead.
 # run_spm() picks up whichever of the two is there, so nothing below changes.
-if (!file.exists(file.path(out_dir, spm_program()))) build_spm(out_dir)
+#if (!file.exists(file.path(out_dir, spm_program()))) build_spm(out_dir)
 
 
 # Project both models ----------------------------------------------------
