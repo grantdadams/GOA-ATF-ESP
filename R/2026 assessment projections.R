@@ -13,6 +13,9 @@
 # redraws recruitment 1000 times and reports the mean, while Rceattle carries a
 # single trajectory forward.
 
+# Install spmR from your local cloned folder
+devtools::install("C:/Users/kalei.shotwell/Work/GitHub/spmR")
+
 library(Rceattle)
 library(spmR)     # remotes::install_github("afsc-assessments/spmR")
 
@@ -26,8 +29,7 @@ fits <- list("26.0" = readRDS("2026/models/mod_26_0.RDS"),
 endyr <- fits[["26.0"]]$data_list$endyr        # 2026; advice is for 2027 and 2028
 
 # Compile SPM once. Needs ADMB installed.
-if (!file.exists(file.path(out_dir, "spm"))) build_spm(out_dir)
-
+#if (!file.exists(file.path(out_dir, "spm"))) build_spm(out_dir)
 
 # Project both models ----------------------------------------------------
 
@@ -36,6 +38,12 @@ for (model in names(fits)) {
 
   # Each model gets its own folder of SPM inputs and outputs.
   run_dir <- file.path(out_dir, paste0("mod_", sub(".", "_", model, fixed = TRUE)))
+  # Trick the spmR file.exists() check by creating an extensionless copy
+  file.copy(
+    from = file.path(run_dir, "spm.exe"),
+    to = file.path(run_dir, "spm"),
+    overwrite = TRUE
+  )
   dir.create(run_dir, showWarnings = FALSE, recursive = TRUE)
   file.copy(file.path(out_dir, "spm"), file.path(run_dir, "spm"), overwrite = TRUE)
   Sys.chmod(file.path(run_dir, "spm"), "0755")

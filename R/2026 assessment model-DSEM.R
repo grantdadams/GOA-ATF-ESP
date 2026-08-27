@@ -109,21 +109,48 @@ dir.create(here(yr, "results", mod_list[i]))
 # Fetch the actual model object using get()
 mod <- get(mod_list[i])
 
-# Diagmod# Diagnostics ----
+# Diagnostics ----
 # * Summaries -----
 summary(mod)
 convergence_diagnostics(mod)
 
 # * Plots ----
-plot_index(mod)
+bt_index <- plot_index(mod)
+ggsave(filename = here::here(yr, "results", mod_list[i],"bt_index.png"),
+       plot = bt_index, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
+
 plot_index(mod, log = TRUE)
 plot_indexresidual(mod)
-plot_biomass(mod, incl_proj = TRUE, add_ci = TRUE)
-plot_ssb(mod, incl_proj = TRUE, add_ci = TRUE)
-plot_recruitment(mod, incl_proj = TRUE, add_ci = TRUE)
-plot_comp(mod)
-plot_catch(mod)
-plot_selectivity(mod)
+
+biomass <- plot_biomass(mod, incl_proj = TRUE, add_ci = TRUE)
+ggsave(filename = here::here(yr, "results", mod_list[i],"biomass.png"),
+       plot = biomass, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
+
+ssb <- plot_ssb(mod, incl_proj = TRUE, add_ci = TRUE)
+ggsave(filename = here::here(yr, "results", mod_list[i],"ssb.png"),
+       plot = ssb, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
+
+recruit <- plot_recruitment(mod, incl_proj = TRUE, add_ci = TRUE)
+ggsave(filename = here::here(yr, "results", mod_list[i],"recruit.png"),
+       plot = recruit, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
+
+pearson_plots <- plot_comp(mod)
+ggsave(filename = here::here(yr, "results", mod_list[i],"pearson_bt_age_annual.png"),
+       plot = pearson_plots$`annual_ATF_bottom_trawl_age - age comp`, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
+ggsave(filename = here::here(yr, "results", mod_list[i],"pearson_bt_age_aggregate.png"),
+       plot = pearson_plots$`aggregated_ATF_bottom_trawl_age - age comp`, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
+ggsave(filename = here::here(yr, "results", mod_list[i],"pearson_fish_age_annual.png"),
+       plot = pearson_plots$`annual_ATF_total_fishery - length comp`, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
+ggsave(filename = here::here(yr, "results", mod_list[i],"pearson_fish_age_aggregate.png"),
+       plot = pearson_plots$`aggregated_ATF_total_fishery - length comp`, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
+
+catch <- plot_catch(mod)
+ggsave(filename = here::here(yr, "results", mod_list[i],"catch.png"),
+       plot = catch, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
+
+selectivity <- plot_selectivity(mod)
+ggsave(filename = here::here(yr, "results", mod_list[i],"selectivity.png"),
+       plot = selectivity, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 # * OSAs ----
 osa <- osa_residuals(mod)
@@ -209,12 +236,24 @@ prof_sigmaR <- profile(
   values   = list(seq(0.1, 1.5, by = 0.05))
 )
 prof_sigmaR
-minimum?
+#minimum?
 
-plot(prof_sigmaR$grid$slot_1,
-     prof_sigmaR$nll - min(prof_sigmaR$nll, na.rm = TRUE),
-     type = "l", xlab = "sigmaR", ylab = "dNLL")
+# 1. Put the profile data into a simple data frame
+prof_df <- data.frame(
+  sigmaR = prof_sigmaR$grid$slot_1,
+  dNLL   = prof_sigmaR$nll - min(prof_sigmaR$nll, na.rm = TRUE)
+)
 
+# 2. Build the ggplot profile line
+sigr_prof <- ggplot(prof_df, aes(x = sigmaR, y = dNLL)) +
+  geom_line(color = "black", linewidth = 1) +
+  labs(x = "sigmaR", y = "dNLL", title = "Likelihood Profile: sigmaR") +
+  theme_bw()
+
+ggsave(filename = here::here(yr, "results", mod_list[i],"sigr_profile.png"),
+       plot = sigr_prof, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
+
+# @Grant for this one
 plot_profile(prof_sigmaR, xlab = "sigmaR")
 
 
@@ -227,39 +266,41 @@ prof_M_sex <- profile(
                   seq(0.10, 0.40, by = 0.05))
 )
 
-#not sure about this one
-plot(prof_M_sex$grid$slot_1,
+M_prof <- plot(prof_M_sex$grid$slot_1,
      prof_M_sex$nll - min(prof_M_sex$nll, na.rm = TRUE),
      type = "l", xlab = "M", ylab = "dNLL")
 
+ggsave(filename = here::here(yr, "results", mod_list[i],"sigr.png"),
+       plot = sigr, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
+
 # Model Comparison ----
 
-f_compare <- plot_f(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"))
+f_compare <- plot_f(list(mod_25_old,mod_25_0,mod_25_1), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M"))
 
 ggsave(filename = here::here(yr, "results","f_comparison.png"),
        plot = f_compare, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
-biom_compare <- plot_biomass(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), incl_proj = TRUE, add_ci = TRUE)
+biom_compare <- plot_biomass(list(mod_25_old,mod_25_0,mod_25_1), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M"), incl_proj = TRUE, add_ci = TRUE)
 
 ggsave(filename = here::here(yr, "results", "biomass_comparison.png"),
        plot = biom_compare, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
-ssb_compare <- plot_ssb(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison", legend.pos = "bottomleft")
+ssb_compare <- plot_ssb(list(mod_25_old,mod_25_0,mod_25_1), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison", legend.pos = "bottomleft")
 
 ggsave(filename = here::here(yr, "results", "ssb_comparison.png"),
        plot = ssb_compare, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
-recruit_compare <- plot_recruitment(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison")
+recruit_compare <- plot_recruitment(list(mod_25_old,mod_25_0,mod_25_1), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M"), incl_proj = TRUE, add_ci = TRUE, file = "Results/Model comparison")
 
 ggsave(filename = here::here(yr, "results", "recruit_comparison.png"),
        plot = recruit_compare, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
-index_compare <- plot_index(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), file = "Results/Model comparison")
+index_compare <- plot_index(list(mod_25_old,mod_25_0,mod_25_1), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M"), file = "Results/Model comparison")
 
 ggsave(filename = here::here(yr, "results", "index_comparison.png"),
        plot = index_compare, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
-sel_compare <- plot_selectivity(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), file = "Results/Model comparison")
+sel_compare <- plot_selectivity(list(mod_25_old,mod_25_0,mod_25_1), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M"), file = "Results/Model comparison")
 
 ggsave(filename = here::here(yr, "results", "selectivity_comparison.png"),
        plot = sel_compare, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
