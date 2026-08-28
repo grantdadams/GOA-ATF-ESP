@@ -102,7 +102,7 @@ convergence_diagnostics(mod_25_2)
 mod_list<-c("mod_25_old","mod_25_0","mod_25_1","mod_25_2")
 
 # Set i for your loop
-i <- 1
+i <- 3
 print(mod_list[i])
 dir.create(here(yr, "results", mod_list[i]))
 
@@ -336,6 +336,11 @@ f_compare <- plot_f(list(mod_25_old,mod_25_0,mod_25_1), model_names = c("Model 2
 ggsave(filename = here::here(yr, "results","f_comparison.png"),
        plot = f_compare, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
+catch_compare <- plot_catch(list(mod_25_old,mod_25_0,mod_25_1), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M"))
+
+ggsave(filename = here::here(yr, "results","catch_comparison.png"),
+       plot = catch_compare, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
+
 biom_compare <- plot_biomass(list(mod_25_old,mod_25_0,mod_25_1), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M"), incl_proj = TRUE, add_ci = TRUE)
 
 ggsave(filename = here::here(yr, "results", "biomass_comparison.png"),
@@ -369,18 +374,21 @@ ggsave(filename = here::here(yr, "results", "selectivity_comparison.png"),
 # Extract Estimates for Model
 
 # Primary estimated model parameters with standard errors from sdreport() fun and TMB calculates and stores within sdrep
-params_summary <- as.data.frame(summary(mod$sdrep, select = "fixed"))
-
+params_summary <- summary(mod$sdrep, select = "fixed")
 # This returns a matrix with 'Estimate' and 'Std. Error' columns
 head(params_summary)
-
-readr::write_csv(params_summary, here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_params_summary.csv")))
+# convert to dataframe and lock the row names into a new column called parameters
+params_df <- as.data.frame(params_summary) %>%
+  tibble::rownames_to_column(var = "parameter")
+readr::write_csv(params_df, here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_params_summary.csv")))
 
 # Extract all derived quantities and their standard errors
-derived_quants <- as.data.frame(summary(mod$sdrep, select = "report"))
+derived_quants <- summary(mod$sdrep, select = "report")
 head(derived_quants)
-
-readr::write_csv(derived_quants, here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_derived_quantities.csv")))
+# convert to dataframe and lock the row names into a new column called metric
+derived_df <- as.data.frame(derived_quants) %>%
+  tibble::rownames_to_column(var = "metric")
+readr::write_csv(derived_df, here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_derived_quantities.csv")))
 
 # ESP-DSEM Integrated Model ----
 
