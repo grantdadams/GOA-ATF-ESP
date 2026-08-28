@@ -102,7 +102,7 @@ convergence_diagnostics(mod_25_2)
 mod_list<-c("mod_25_old","mod_25_0","mod_25_1","mod_25_2")
 
 # Set i for your loop
-i <- 2
+i <- 1
 print(mod_list[i])
 dir.create(here(yr, "results", mod_list[i]))
 
@@ -116,40 +116,40 @@ convergence_diagnostics(mod)
 
 # * Plots ----
 bt_index <- plot_index(mod)
-ggsave(filename = here::here(yr, "results", mod_list[i],"bt_index.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_bt_index.png")),
        plot = bt_index, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 plot_index(mod, log = TRUE)
 plot_indexresidual(mod)
 
 biomass <- plot_biomass(mod, incl_proj = TRUE, add_ci = TRUE)
-ggsave(filename = here::here(yr, "results", mod_list[i],"biomass.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_biomass.png")),
        plot = biomass, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 ssb <- plot_ssb(mod, incl_proj = TRUE, add_ci = TRUE)
-ggsave(filename = here::here(yr, "results", mod_list[i],"ssb.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_ssb.png")),
        plot = ssb, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 recruit <- plot_recruitment(mod, incl_proj = TRUE, add_ci = TRUE)
-ggsave(filename = here::here(yr, "results", mod_list[i],"recruit.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_recruit.png")),
        plot = recruit, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 pearson_plots <- plot_comp(mod)
-ggsave(filename = here::here(yr, "results", mod_list[i],"pearson_bt_age_annual.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_pearson_bt_annual_age.png")),
        plot = pearson_plots$`annual_ATF_bottom_trawl_age - age comp`, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
-ggsave(filename = here::here(yr, "results", mod_list[i],"pearson_bt_age_aggregate.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_pearson_bt_age_aggregate.png")),
        plot = pearson_plots$`aggregated_ATF_bottom_trawl_age - age comp`, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
-ggsave(filename = here::here(yr, "results", mod_list[i],"pearson_fish_age_annual.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_pearson_fishery_size_annual.png")),
        plot = pearson_plots$`annual_ATF_total_fishery - length comp`, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
-ggsave(filename = here::here(yr, "results", mod_list[i],"pearson_fish_age_aggregate.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_pearson_fishery_size_aggregate.png")),
        plot = pearson_plots$`aggregated_ATF_total_fishery - length comp`, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 catch <- plot_catch(mod)
-ggsave(filename = here::here(yr, "results", mod_list[i],"catch.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_catch.png")),
        plot = catch, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 selectivity <- plot_selectivity(mod)
-ggsave(filename = here::here(yr, "results", mod_list[i],"selectivity.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_selectivity.png")),
        plot = selectivity, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 # * OSAs ----
@@ -158,32 +158,33 @@ head(osa)
 
 # Statistical diagnostics (Stewart & Monnahan 2025): SDNR and lower/upper tail
 osa_diags<-osa_diagnostics(osa)
-readr::write_csv(osa_diags, here::here(yr, "results", mod_list[i],"osa_diagnostics.csv"))
+# If mod_list is just a text vector:
+readr::write_csv(osa_diags, here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_osa_diagnostics.csv")))
 
 # Q-Q plot (with SDNR / tail annotation) + residual-by-year
 osa_plots<-plot(osa)
 
-ggsave(filename = here::here(yr, "results", mod_list[i],"osa_aggregate.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_osa_aggregate.png")),
        plot = osa_plots$aggregate, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
-ggsave(here::here(yr, "results", mod_list[i],"osa_composition.png"),
+ggsave(here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_osa_composition.png")),
        plot = osa_plots$composition, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 # * Retrospectives ----
 retro <- retrospective(Rceattle = mod, peels = 10)
 mohns <- retro$mohns # Mohn's rho for each quantity
-readr::write_csv(mohns, here::here(yr, "results", mod_list[i],"mohns_diagnostics.csv"))
+readr::write_csv(mohns, here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_mohns_diagnostics.csv")))
 
 # Plot historical trajectories across peels
 retro_plot_biomass<-plot_biomass(retro$Rceattle_list, add_ci = TRUE)
 retro_plot_ssb<-plot_ssb(retro$Rceattle_list, add_ci = TRUE)
 retro_plot_recruitment<-plot_recruitment(retro$Rceattle_list, add_ci = TRUE)
 
-ggsave(filename = here::here(yr, "results", mod_list[i],"biomass_retro.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_biomass_retro.png")),
        plot = retro_plot_biomass, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
-ggsave(filename = here::here(yr, "results", mod_list[i],"ssb_retro.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_ssb_retro.png")),
        plot = retro_plot_ssb, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
-ggsave(filename = here::here(yr, "results", mod_list[i],"recruitment_retro.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_recruitment_retro.png")),
        plot = retro_plot_recruitment, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 
@@ -203,13 +204,13 @@ jitter_hist <- ggplot(data = jitter_data, aes(x = nll_diff)) +
        y = "Frequency") +
   theme_bw() # Or whatever theme you prefer
 
-ggsave(filename = here::here(yr, "results", mod_list[i],"jitter_hist.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i],paste0(mod_list[i], "_jitter_hist.png")),
        plot = jitter_hist, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 # Overlay biomass trajectories — tight overlap indicates a stable optimum
 biomass_jitters <- plot_biomass(mod_jitters$Rceattle_list) + theme(legend.position="none")
 
-ggsave(filename = here::here(yr, "results", mod_list[i],"biomass_jitters.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i],paste0(mod_list[i], "_biomass_jitters.png")),
        plot = biomass_jitters, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 # * Self-test ----
@@ -218,13 +219,13 @@ mod_sims <- self_test(mod, nsim = 100, start = "estimated")
 # Number of simulations that converged (non-converged runs are dropped)
 num_sims<- length(mod_sims)
 num_sims_df <- data.frame(converged_simulations = num_sims)
-readr::write_csv(num_sims_df, here::here(yr, "results", mod_list[i],"num_sims_converged.csv"))
+readr::write_csv(num_sims_df, here::here(yr, "results", mod_list[i],paste0(mod_list[i], "_nums_sims_converged.csv")))
 
 # Overlay biomass / SSB trajectories across simulations — the original fit's
 # trajectory should sit inside the spread of the refits.
 biomass_sims <- plot_biomass(c(mod_sims, list(mod)), line_col = c(rep("grey", 100), 1)) + theme(legend.position="none")
 
-ggsave(filename = here::here(yr, "results", mod_list[i],"biomass_sims.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i],paste0(mod_list[i], "_biomass_sims.png")),
        plot = biomass_sims, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 # * Likelihood profiles ----
@@ -250,7 +251,7 @@ sigr_prof <- ggplot(prof_df, aes(x = sigmaR, y = dNLL)) +
   labs(x = "sigmaR", y = "dNLL", title = "Likelihood Profile: sigmaR") +
   theme_bw()
 
-ggsave(filename = here::here(yr, "results", mod_list[i],"sigr_profile.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_sigr_profile.png")),
        plot = sigr_prof, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 # @Grant for this one
@@ -258,7 +259,7 @@ ggsave(filename = here::here(yr, "results", mod_list[i],"sigr_profile.png"),
 # determine sigmaR, not whether the data sources agree about it.
 sigr_comp_prof <- plot_profile(prof_sigmaR, xlab = "sigmaR")
 
-ggsave(filename = here::here(yr, "results", mod_list[i],"sigr_profile_components.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_sigr_profile_components.png")),
        plot = sigr_comp_prof, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 
@@ -287,7 +288,7 @@ prof_M                                  # does the grid bracket the minimum?
 
 M_prof <- plot_profile(prof_M, xlab = "M multiplier (1 = fitted)")
 
-ggsave(filename = here::here(yr, "results", mod_list[i],"M_profile_components.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_M_profile_components.png")),
        plot = M_prof, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 # One component routinely dwarfs the rest and flattens the others onto the axis,
@@ -296,12 +297,12 @@ ggsave(filename = here::here(yr, "results", mod_list[i],"M_profile_components.pn
 M_prof_scaled <- plot_profile(prof_M, relative = "scaled", minfraction = 0.02,
                               xlab = "M multiplier (1 = fitted)")
 
-ggsave(filename = here::here(yr, "results", mod_list[i],"M_profile_scaled.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_M_profile_scaled.png")),
        plot = M_prof_scaled, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 # Which fleet pulls where, at the total's minimum.
 M_comps <- profile_components(prof_M, minfraction = 0.01)
-readr::write_csv(M_comps, here::here(yr, "results", mod_list[i],"M_profile_components.csv"))
+readr::write_csv(M_comps, here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_M_profile_components.csv")))
 
 
 # 2-D cross-profile: female against male M1. A surface, not a line -- 49 fits --
@@ -324,10 +325,11 @@ M_sex_surface <- ggplot(
   labs(x = "Female M", y = "Male M", fill = "dNLL") +
   theme_bw()
 
-ggsave(filename = here::here(yr, "results", mod_list[i],"M_sex_surface.png"),
+ggsave(filename = here::here(yr, "results", mod_list[i],paste0(mod_list[i], paste0(mod_list[i], "_M_sex_surface.png"))),
        plot = M_sex_surface, units = 'in', bg = 'white', height = 8, width = 11, dpi = 300)
 
 # Model Comparison ----
+# Look at all three models together and compare outputs
 
 f_compare <- plot_f(list(mod_25_old,mod_25_0,mod_25_1), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M"))
 
@@ -362,7 +364,23 @@ ggsave(filename = here::here(yr, "results", "selectivity_comparison.png"),
 #plot_mortality(list(mod_25_old,mod_25_0,mod_25_1,mod_25_2), model_names = c("Model 25.0 Fix M","Model 25.0 Fix M New Data", "Model 25.1 Estimate M", "Model 25.1 Multispecies"), file = "Results/Model comparison")
 
 # Projection Models ----
+# Run the assessment w HCR projection.R script for rceattle output, then run the assessment projections.R script to bridge to the ADMB 7 scenarios. Requires ADMB spm.exe to be compiled and then copied within the directory of the model that has the .dat file. Outputs scenarios and comparison.csv to review in the projections folder
 
+# Extract Estimates for Model
+
+# Primary estimated model parameters with standard errors from sdreport() fun and TMB calculates and stores within sdrep
+params_summary <- as.data.frame(summary(mod$sdrep, select = "fixed"))
+
+# This returns a matrix with 'Estimate' and 'Std. Error' columns
+head(params_summary)
+
+readr::write_csv(params_summary, here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_params_summary.csv")))
+
+# Extract all derived quantities and their standard errors
+derived_quants <- as.data.frame(summary(mod$sdrep, select = "report"))
+head(derived_quants)
+
+readr::write_csv(derived_quants, here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_derived_quantities.csv")))
 
 # ESP-DSEM Integrated Model ----
 
