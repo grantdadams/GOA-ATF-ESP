@@ -10,6 +10,7 @@ library(here)
 # Globals ----
 yr<-2026 #year for output, usually current year
 dir.create(here(yr, "results"))
+#dir.create(here::here(yr, "results", mod_list[i]), recursive = TRUE, showWarnings = FALSE) # if need to create another interior folder
 
 # Data ----
 # 2025 Model
@@ -102,12 +103,21 @@ convergence_diagnostics(mod_25_2)
 mod_list<-c("mod_25_old","mod_25_0","mod_25_1","mod_25_2")
 
 # Set i for your loop
-i <- 3
+i <- 2
 print(mod_list[i])
 dir.create(here(yr, "results", mod_list[i]))
 
 # Fetch the actual model object using get()
 mod <- get(mod_list[i])
+
+# Read and save the time series of biomass, ssb, R, F, etc
+mod_dat<-as.data.frame(mod)
+readr::write_csv(mod_dat, here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_mod_dat.csv")))
+
+# Read and save likelihoods
+
+
+mod_nll<-as.data.frame(mod$quantities$jnll)
 
 # Diagnostics ----
 # * Summaries -----
