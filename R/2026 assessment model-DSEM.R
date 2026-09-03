@@ -100,10 +100,10 @@ summary(mod_25_2)
 convergence_diagnostics(mod_25_2)
 
 # Make a list of models to run for rest of script
-mod_list<-c("mod_25_old","mod_25_0","mod_25_1","mod_25_2")
+mod_list<-c("mod_25_old","mod_25_0","mod_25_1")
 
 # Set i for your loop
-i <- 2
+i <- 3
 print(mod_list[i])
 dir.create(here(yr, "results", mod_list[i]))
 
@@ -254,6 +254,8 @@ prof_df <- data.frame(
   sigmaR = prof_sigmaR$grid$slot_1,
   dNLL   = prof_sigmaR$nll - min(prof_sigmaR$nll, na.rm = TRUE)
 )
+readr::write_csv(prof_df, here::here(yr, "results", mod_list[i], paste0(mod_list[i], "_sigr_profile_components.csv")))
+
 
 # 2. Build the ggplot profile line
 sigr_prof <- ggplot(prof_df, aes(x = sigmaR, y = dNLL)) +

@@ -1,0 +1,103 @@
+slot_1,fit,component,unit,axis,series,value
+0.6,1,Total,NA,model,Total,44.27822266474695
+0.65,2,Total,NA,model,Total,33.198200161123026
+0.7,3,Total,NA,model,Total,24.365126524157205
+0.75,4,Total,NA,model,Total,17.41891122116766
+0.8,5,Total,NA,model,Total,12.051624413052735
+0.85,6,Total,NA,model,Total,7.914488356279804
+0.9,7,Total,NA,model,Total,4.786074249082844
+0.95,8,Total,NA,model,Total,2.5356611178514186
+1,9,Total,NA,model,Total,1.0525603161664492
+1.05,10,Total,NA,model,Total,0.23704290143754747
+1.1,11,Total,NA,model,Total,0
+1.15,12,Total,NA,model,Total,0.26387423313138925
+1.2000000000000002,13,Total,NA,model,Total,0.960488731667283
+1.25,14,Total,NA,model,Total,2.0278987609328567
+1.3,15,Total,NA,model,Total,3.3953966708582186
+1.35,16,Total,NA,model,Total,4.979685269706152
+1.4,17,Total,NA,model,Total,6.649962247770418
+0.6,1,Index data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Index data,17.03474259197282
+0.65,2,Index data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Index data,14.991065172644626
+0.7,3,Index data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Index data,13.063073627594541
+0.75,4,Index data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Index data,11.272362682308954
+0.8,5,Index data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Index data,9.627825150460463
+0.85,6,Index data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Index data,8.150948763811826
+0.9,7,Index data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Index data,6.826903097365837
+0.95,8,Index data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Index data,5.643892831693451
+1,9,Index data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Index data,4.593072436367264
+1.05,10,Index data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Index data,3.6690874366129944
+1.1,11,Index data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Index data,2.8637422504242767
+1.15,12,Index data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Index data,2.166473180477572
+1.2000000000000002,13,Index data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Index data,1.5665013551536577
+1.25,14,Index data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Index data,1.0528504785116946
+1.3,15,Index data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Index data,0.6139462912128338
+1.35,16,Index data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Index data,0.27121128911197256
+1.4,17,Index data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Index data,0
+0.6,1,Composition data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Composition data,31.596452060624266
+0.65,2,Composition data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Composition data,23.71396400892182
+0.7,3,Composition data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Composition data,17.429840156740255
+0.75,4,Composition data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Composition data,12.497467876856547
+0.8,5,Composition data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Composition data,8.712988403820503
+0.85,6,Composition data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Composition data,5.8250436820225815
+0.9,7,Composition data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Composition data,3.613010055591694
+0.95,8,Composition data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Composition data,1.9966234939329084
+1,9,Composition data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Composition data,0.9059733778421375
+1.05,10,Composition data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Composition data,0.26409106434461194
+1.1,11,Composition data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Composition data,0
+1.15,12,Composition data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Composition data,0.05142151316128718
+1.2000000000000002,13,Composition data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Composition data,0.3637324013194032
+1.25,14,Composition data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Composition data,0.8899863563846253
+1.3,15,Composition data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Composition data,1.590494032992126
+1.35,16,Composition data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Composition data,2.4396717116880637
+1.4,17,Composition data,ATF_bottom_trawl,fleet,ATF_bottom_trawl: Composition data,3.408897931727374
+0.6,1,Recruitment deviates,Arrowtooth flounder,species,Recruitment deviates,0
+0.65,2,Recruitment deviates,Arrowtooth flounder,species,Recruitment deviates,2.898022436109393
+0.7,3,Recruitment deviates,Arrowtooth flounder,species,Recruitment deviates,5.284484845537559
+0.75,4,Recruitment deviates,Arrowtooth flounder,species,Recruitment deviates,7.225773892007048
+0.8,5,Recruitment deviates,Arrowtooth flounder,species,Recruitment deviates,8.744960552201782
+0.85,6,Recruitment deviates,Arrowtooth flounder,species,Recruitment deviates,9.780205903405786
+0.9,7,Recruitment deviates,Arrowtooth flounder,species,Recruitment deviates,10.539864131527246
+0.95,8,Recruitment deviates,Arrowtooth flounder,species,Recruitment deviates,11.106286514871762
+1,9,Recruitment deviates,Arrowtooth flounder,species,Recruitment deviates,11.498640938217942
+1.05,10,Recruitment deviates,Arrowtooth flounder,species,Recruitment deviates,11.742896796025434
+1.1,11,Recruitment deviates,Arrowtooth flounder,species,Recruitment deviates,11.865686858004306
+1.15,12,Recruitment deviates,Arrowtooth flounder,species,Recruitment deviates,11.893452399130641
+1.2000000000000002,13,Recruitment deviates,Arrowtooth flounder,species,Recruitment deviates,11.850064075679892
+1.25,14,Recruitment deviates,Arrowtooth flounder,species,Recruitment deviates,11.76503527724163
+1.3,15,Recruitment deviates,Arrowtooth flounder,species,Recruitment deviates,11.657222916771989
+1.35,16,Recruitment deviates,Arrowtooth flounder,species,Recruitment deviates,11.466195605857159
+1.4,17,Recruitment deviates,Arrowtooth flounder,species,Recruitment deviates,11.231705493910322
+0.6,1,Composition data,GOA_atf_fishery,fleet,GOA_atf_fishery: Composition data,0.3028880641155638
+0.65,2,Composition data,GOA_atf_fishery,fleet,GOA_atf_fishery: Composition data,0
+0.7,3,Composition data,GOA_atf_fishery,fleet,GOA_atf_fishery: Composition data,0.10835025931342557
+0.75,4,Composition data,GOA_atf_fishery,fleet,GOA_atf_fishery: Composition data,0.5061803434892056
+0.8,5,Composition data,GOA_atf_fishery,fleet,GOA_atf_fishery: Composition data,1.0957043133345508
+0.85,6,Composition data,GOA_atf_fishery,fleet,GOA_atf_fishery: Composition data,1.807677126505439
+0.9,7,Composition data,GOA_atf_fishery,fleet,GOA_atf_fishery: Composition data,2.6317828881170016
+0.95,8,Composition data,GOA_atf_fishery,fleet,GOA_atf_fishery: Composition data,3.5389511146412787
+1,9,Composition data,GOA_atf_fishery,fleet,GOA_atf_fishery: Composition data,4.459574723977568
+1.05,10,Composition data,GOA_atf_fishery,fleet,GOA_atf_fishery: Composition data,5.376419944231884
+1.1,11,Composition data,GOA_atf_fishery,fleet,GOA_atf_fishery: Composition data,6.279093182985704
+1.15,12,Composition data,GOA_atf_fishery,fleet,GOA_atf_fishery: Composition data,7.16544067774646
+1.2000000000000002,13,Composition data,GOA_atf_fishery,fleet,GOA_atf_fishery: Composition data,8.055598048103704
+1.25,14,Composition data,GOA_atf_fishery,fleet,GOA_atf_fishery: Composition data,8.970297455830831
+1.3,15,Composition data,GOA_atf_fishery,fleet,GOA_atf_fishery: Composition data,9.9126768289063
+1.35,16,Composition data,GOA_atf_fishery,fleet,GOA_atf_fishery: Composition data,10.822551617675288
+1.4,17,Composition data,GOA_atf_fishery,fleet,GOA_atf_fishery: Composition data,11.601283647330632
+0.6,1,Non-parametric selectivity,GOA_atf_fishery,fleet,GOA_atf_fishery: Non-parametric selectivity,11.02586253821043
+0.65,2,Non-parametric selectivity,GOA_atf_fishery,fleet,GOA_atf_fishery: Non-parametric selectivity,8.830632460882697
+0.7,3,Non-parametric selectivity,GOA_atf_fishery,fleet,GOA_atf_fishery: Non-parametric selectivity,6.9397127153667135
+0.75,4,Non-parametric selectivity,GOA_atf_fishery,fleet,GOA_atf_fishery: Non-parametric selectivity,5.329170429159667
+0.8,5,Non-parametric selectivity,GOA_atf_fishery,fleet,GOA_atf_fishery: Non-parametric selectivity,3.9859921213902787
+0.85,6,Non-parametric selectivity,GOA_atf_fishery,fleet,GOA_atf_fishery: Non-parametric selectivity,2.898484509979994
+0.9,7,Non-parametric selectivity,GOA_atf_fishery,fleet,GOA_atf_fishery: Non-parametric selectivity,2.0099879828429366
+0.95,8,Non-parametric selectivity,GOA_atf_fishery,fleet,GOA_atf_fishery: Non-parametric selectivity,1.277851386714861
+1,9,Non-parametric selectivity,GOA_atf_fishery,fleet,GOA_atf_fishery: Non-parametric selectivity,0.7225756271384682
+1.05,10,Non-parametric selectivity,GOA_atf_fishery,fleet,GOA_atf_fishery: Non-parametric selectivity,0.3327004697695273
+1.1,11,Non-parametric selectivity,GOA_atf_fishery,fleet,GOA_atf_fishery: Non-parametric selectivity,0.0966660770322676
+1.15,12,Non-parametric selectivity,GOA_atf_fishery,fleet,GOA_atf_fishery: Non-parametric selectivity,0
+1.2000000000000002,13,Non-parametric selectivity,GOA_atf_fishery,fleet,GOA_atf_fishery: Non-parametric selectivity,0.010144452258487036
+1.25,14,Non-parametric selectivity,GOA_atf_fishery,fleet,GOA_atf_fishery: Non-parametric selectivity,0.10190657109431811
+1.3,15,Non-parametric selectivity,GOA_atf_fishery,fleet,GOA_atf_fishery: Non-parametric selectivity,0.24591554111892577
+1.35,16,Non-parametric selectivity,GOA_atf_fishery,fleet,GOA_atf_fishery: Non-parametric selectivity,0.45879306073247506
+1.4,17,Non-parametric selectivity,GOA_atf_fishery,fleet,GOA_atf_fishery: Non-parametric selectivity,0.733937076498826
