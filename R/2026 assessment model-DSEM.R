@@ -103,7 +103,7 @@ convergence_diagnostics(mod_25_2)
 mod_list<-c("mod_25_old","mod_25_0","mod_25_1")
 
 # Set i for your loop
-i <- 3
+i <- 2
 print(mod_list[i])
 dir.create(here(yr, "results", mod_list[i]))
 
@@ -118,6 +118,7 @@ readr::write_csv(mod_dat, here::here(yr, "results", mod_list[i], paste0(mod_list
 
 
 mod_nll<-as.data.frame(mod$quantities$jnll)
+mod_nll_comp<-as.data.frame(mod$quantities$jnll_comp)
 
 # Diagnostics ----
 # * Summaries -----
